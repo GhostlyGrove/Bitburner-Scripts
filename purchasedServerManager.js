@@ -83,7 +83,7 @@ export async function main(ns) {
                 // If too many consecutive failures occur, stop trying to upgrade
                 if (failureCounter >= maxFailures) {
                   ns.print(`ERROR: Too many consecutive upgrade failures. Breaking out of the loop.`);
-                  break;
+                  ns.exit();
                 }
               }
             } else {
