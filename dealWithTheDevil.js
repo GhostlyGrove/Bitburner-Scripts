@@ -1,3 +1,11 @@
+/**
+ * kill all scripts before running
+ * go home
+ * run the script
+ * automatically starts stuff that needs to start
+ * afterwards if you need to restart daemon or imp just kill the daemon or imp script you have running first
+ */
+
 /** @param {NS} ns **/
 export async function main(ns) {
   ns.disableLog("ALL");  // Disable all logging to keep the output clean
