@@ -6,11 +6,12 @@ export async function main(ns) {
 
   const scripts = [
     "library.js",
-    "hack.js",
-    "grow.js",
-    "weaken.js",
+    "hack.js",                               // kill your scripts
+    "grow.js",                               // go home
+    "weaken.js",                             // take the deal
     "purchasedServerManager.js",
     "digger.js",
+    "dealWithTheDevil.js",
     "Imp.js",
     "Daemon.js"
   ];
