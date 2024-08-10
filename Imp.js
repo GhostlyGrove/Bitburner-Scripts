@@ -35,6 +35,9 @@ export async function main(ns) {
   // Prepare the target servers to maximize money and minimize security
   ns.tprint("Preparing servers");
   await prepareServers(ns, targetServers);
+  ns.toast("Preparation is complete.");
+  ns.print("Preparation is complete.")
+  ns.tprint("Preparation is complete. Imp will start trying to make money.");
 
   while (true) {
     try {
