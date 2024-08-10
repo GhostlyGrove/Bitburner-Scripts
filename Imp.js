@@ -17,11 +17,13 @@ import { rootedServers, crawlerHackable } from "library.js";
 /** @param {NS} ns **/
 export async function main(ns) {
   ns.disableLog("ALL"); // Disable all logging to reduce console clutter
+  ns.writePort(1, false);
 
   const daemonScript = "Daemon.js"; // The advanced script to run once you have Formulas.exe
   const purchasedServerManagerScript = "purchasedServerManager.js"; // Script to manage buying and upgrading servers
   const diggerScript = "digger.js"; // Script to gain root access on hackable servers
   const delayBetweenCycles = 200; // Delay between each cycle of actions (in milliseconds)
+  let serversMaxUpgrades = false;
 
   // Determine the target servers to hack based on script arguments or using a custom function
   let targetServers = ns.args.length > 0 ? ns.args : findSimpleTargets(ns);
@@ -50,13 +52,21 @@ export async function main(ns) {
       // Determine the target servers to hack based on script arguments or using a custom function
       targetServers = ns.args.length > 0 ? ns.args : findSimpleTargets(ns);
 
-
-      // Ensure that the server manager script is running on the home server
-      if (!ns.isRunning(purchasedServerManagerScript, "home")) {
-        ns.print(`Starting ${purchasedServerManagerScript} on home server.`);
-        ns.exec(purchasedServerManagerScript, "home"); // Start the server manager script
-      } else {
-        ns.print(`${purchasedServerManagerScript} is already running on home server.`);
+      if (ns.readPort(1) == true || serversMaxUpgrades == true) {
+        ns.print("Severs have reached max ram.");
+        serversMaxUpgrades = true;
+      }
+      else {
+        ns.print("Servers still need more ram.");
+      }
+      if (serversMaxUpgrades == false) {
+        // Ensure the purchasedServerManager.js script is running on the home server
+        if (!ns.isRunning(purchasedServerManagerScript, "home")) {
+          ns.print(`Starting ${purchasedServerManagerScript} on home server.`);
+          ns.exec(purchasedServerManagerScript, "home");
+        } else {
+          ns.print(`${purchasedServerManagerScript} is already running on home server.`);
+        }
       }
 
       // Ensure digger.js is running only if it hasn't already rooted all hackable servers
