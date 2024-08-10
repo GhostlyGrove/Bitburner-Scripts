@@ -11,6 +11,8 @@ export async function main(ns) {
 
   while (true) {
     try {
+      ns.tprint("The Imp is here to help. He will handle buying/upgrading servers, nuking servers and making money");
+
       // Check if Formulas.exe is present, and switch to Daemon.js if so
       if (ns.fileExists("Formulas.exe", "home")) {
         ns.tprint("Formulas.exe detected. Sacrificing Imp to summon the Daemon.");
@@ -40,6 +42,7 @@ export async function main(ns) {
         if (!ns.isRunning(diggerScript, "home")) {
           ns.print(`Starting ${diggerScript} on home server.`);
           ns.exec(diggerScript, "home");
+          await ns.sleep(10000);
         } else {
           ns.print(`${diggerScript} is already running on home server.`);
         }
@@ -139,16 +142,19 @@ async function prepareServers(ns, servers) {
       const currentSecurity = ns.getServerSecurityLevel(targetServer);
 
       // Determine if grow or weaken operations are needed
-      const needGrow = moneyAvailable < maxMoney;
+      const needGrow = moneyAvailable < maxMoney && moneyAvailable > 0;
       const needWeaken = currentSecurity > minSecurity;
 
       // Log the preparation status
       ns.print(`Preparing server ${targetServer} - Money: ${moneyAvailable}/${maxMoney}, Security: ${currentSecurity}/${minSecurity}`);
 
       if (needGrow) {
-        const growThreads = Math.ceil(ns.growthAnalyze(targetServer, maxMoney / moneyAvailable));
-        ns.print(`Executing grow on ${targetServer} with ${growThreads} threads`);
-        distributeThreads(ns, myServers, "grow.js", growThreads, targetServer);
+        const growthMultiplier = maxMoney / moneyAvailable;
+        if (growthMultiplier >= 1) { // Ensure multiplier is valid
+          const growThreads = Math.ceil(ns.growthAnalyze(targetServer, growthMultiplier));
+          ns.print(`Executing grow on ${targetServer} with ${growThreads} threads`);
+          distributeThreads(ns, myServers, "grow.js", growThreads, targetServer);
+        }
       }
 
       if (needWeaken) {

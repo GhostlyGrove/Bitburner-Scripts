@@ -10,6 +10,10 @@ export async function main(ns) {
     ns.exec("Imp.js", "home");
     ns.exit();
   }
+  else {
+    ns.tprint("The Daemon is here and he's hungry for RAM. He will buy and upgrade personal servers and nuke the shit out of everything he can.");
+    ns.tprint("He will also eat all your ram and spit out money.");
+  }
 
   const purchasedServerManagerScript = "purchasedServerManager.js";
   const diggerScript = "digger.js";

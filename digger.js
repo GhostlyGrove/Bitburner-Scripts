@@ -6,7 +6,6 @@ export async function main(ns) {
   let rootedServers = [];  // List to track rooted servers
 
   ns.print("Starting server rooting process...");
-  ns.tprint("Sending digger to look for roots...");
 
   while (true) {
     await ns.sleep(100);  // Small sleep to avoid spamming

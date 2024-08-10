@@ -22,6 +22,7 @@ export async function main(ns) {
         } else {
           ns.print(`Insufficient funds to purchase server with ${ram}GB RAM`);
         }
+        await ns.sleep(100);
       }
 
       let purchasedServers = ns.getPurchasedServers();
