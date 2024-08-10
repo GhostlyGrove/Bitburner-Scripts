@@ -1,4 +1,4 @@
-/**
+/** 
  * purchasedServerManager.js
  * 
  * Summary:
@@ -20,6 +20,8 @@ export async function main(ns) {
   let availableMoney = ns.getServerMoneyAvailable("home"); // How much money you have available on your home server
   let failureCounter = 0; // Counts how many times a server upgrade fails in a row
   const maxFailures = 5;  // Maximum number of consecutive failures allowed before stopping the upgrade attempts
+  let insufficientFundsCounter = 0;  // Counter for insufficient funds occurrences
+  const maxInsufficientFunds = 5;  // Maximum number of insufficient funds events allowed before stopping the upgrade attempts
 
   while (true) {  // Infinite loop to keep the script running until all servers are fully upgraded
     try {
@@ -77,17 +79,26 @@ export async function main(ns) {
               if (ns.upgradePurchasedServer(server, ramUpgrade)) {
                 ns.print(`Successfully upgraded ${server} to ${ramUpgrade}GB RAM`);
                 failureCounter = 0; // Reset the failure counter if the upgrade is successful
+                insufficientFundsCounter = 0; // Reset the insufficient funds counter on successful upgrade
               } else {
                 ns.print(`ERROR: Failed to upgrade server ${server} to ${ramUpgrade}GB RAM`);
                 failureCounter++; // Increment the failure counter on an upgrade failure
+
                 // If too many consecutive failures occur, stop trying to upgrade
                 if (failureCounter >= maxFailures) {
-                  ns.print(`ERROR: Too many consecutive upgrade failures. Breaking out of the loop.`);
+                  ns.print(`ERROR: Too many consecutive upgrade failures. Quitting script to let controller restart it.`);
                   ns.exit();
                 }
               }
             } else {
               ns.print(`Insufficient funds to upgrade server ${server} to ${ramUpgrade}GB RAM`);
+              insufficientFundsCounter++; // Increment the insufficient funds counter
+
+              // If too many consecutive insufficient funds events occur, stop trying to upgrade
+              if (insufficientFundsCounter >= maxInsufficientFunds) {
+                ns.print(`ERROR: Too many consecutive insufficient funds events. Quitting script to let controller restart it.`);
+                ns.exit();
+              }
             }
           }
           await ns.sleep(100); // Brief pause between each server upgrade attempt
