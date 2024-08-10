@@ -9,10 +9,10 @@ export async function main(ns) {
   const diggerScript = "digger.js";
   const delayBetweenCycles = 200; // Delay between cycles in milliseconds
 
+  ns.tprint("The Imp is here to help. He will handle buying/upgrading servers, nuking servers and making money");
+
   while (true) {
     try {
-      ns.tprint("The Imp is here to help. He will handle buying/upgrading servers, nuking servers and making money");
-
       // Check if Formulas.exe is present, and switch to Daemon.js if so
       if (ns.fileExists("Formulas.exe", "home")) {
         ns.tprint("Formulas.exe detected. Sacrificing Imp to summon the Daemon.");
