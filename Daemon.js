@@ -45,7 +45,7 @@ export async function main(ns) {
   ns.tprint("The Daemon is preparing target servers for maximum money printing.");
   await prepareServers(ns, targetServers, formulas);
   ns.toast("Preparation is complete.");
-  ns.print("Preparation is complete.")
+  ns.print("Preparation is complete.");
   ns.tprint("Preparation is complete. Daemon will eat your ram and give you money in return.");
 
   while (true) {
