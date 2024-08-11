@@ -101,7 +101,8 @@ function extractScriptNames(scriptContent) {
 
   for (const line of scriptLines) {
     const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('"') && trimmedLine.endsWith('",')) {
+    // Match only lines that start with a quote and end with a comma, containing .js
+    if (trimmedLine.startsWith('"') && trimmedLine.endsWith('",') && trimmedLine.includes(".js")) {
       const scriptName = trimmedLine.slice(1, -2);  // Remove surrounding quotes and comma
       scriptNames.push(scriptName);
     }
