@@ -45,6 +45,7 @@ export async function main(ns) {
         if (cost < availableMoney * 0.9) {
           ns.print(`Purchasing server pserv-${i} with ${ram}GB RAM for ${ns.formatNumber(cost)}`);
           if (ns.purchaseServer("pserv-" + i, ram)) {
+            ns.tprint(`New server purchased: pserv-${i}`);
             i++; // If purchase is successful, move to the next server
           } else {
             ns.tprint(`ERROR: Failed to purchase server pserv-${i}`); // Print an error if the purchase fails
@@ -106,6 +107,7 @@ export async function main(ns) {
               ns.print(`Upgrading server ${server} to ${ramUpgrade}GB RAM for ${ns.formatNumber(upgradeCost)}`);
               if (ns.upgradePurchasedServer(server, ramUpgrade)) {
                 ns.print(`Successfully upgraded ${server} to ${ramUpgrade}GB RAM`);
+                ns.tprint(`Successfully upgraded ${server} to ${ramUpgrade}GB RAM`);
                 failureCounter = 0; // Reset the failure counter if the upgrade is successful
                 insufficientFundsCounter = 0; // Reset the insufficient funds counter on successful upgrade
               } else {
@@ -114,8 +116,9 @@ export async function main(ns) {
 
                 // If too many consecutive failures occur, stop trying to upgrade
                 if (failureCounter >= maxFailures) {
-                  ns.print(`ERROR: Too many consecutive upgrade failures. Quitting script to let controller restart it.`);
-                  ns.exit();
+                  ns.print(`ERROR: Too many consecutive upgrade failures. Resetting upgrade attempts.`);
+                  failureCounter = 0; // Reset the failure counter and continue the loop
+                  break; // Exit the for loop to retry the upgrade process
                 }
               }
             } else {
@@ -124,8 +127,9 @@ export async function main(ns) {
 
               // If too many consecutive insufficient funds events occur, stop trying to upgrade
               if (insufficientFundsCounter >= maxInsufficientFunds) {
-                ns.print(`ERROR: Too many consecutive insufficient funds events. Quitting script to let controller restart it.`);
-                ns.exit();
+                ns.print(`ERROR: Too many consecutive insufficient funds events. Resetting upgrade attempts.`);
+                insufficientFundsCounter = 0; // Reset the insufficient funds counter and continue the loop
+                break; // Exit the for loop to retry the upgrade process
               }
             }
           }
