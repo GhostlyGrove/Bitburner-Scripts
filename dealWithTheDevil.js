@@ -29,9 +29,6 @@ export async function main(ns) {
     "Daemon.js"                   // Main controller script
   ];
 
-  // Temporary list to hold scripts downloaded from the updated version of dealWithTheDevil.js
-  let newScripts = [...initialScripts];
-
   // Function to download scripts with retry logic
   async function downloadScripts(scripts) {
     const maxRetries = 3;  // Maximum number of retry attempts for each download
@@ -74,11 +71,13 @@ export async function main(ns) {
   if (await ns.wget(repoUrl + "dealWithTheDevil.js", "dealWithTheDevil_NEW.js")) {
     ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
-    // Read the new script list from the downloaded script (you'll need to modify the script to provide this)
-    const newScriptList = ns.read("dealWithTheDevil_NEW.js").split("\n").filter(line => line.trim() !== "");
+    // Read the new script list from the downloaded script
+    // This assumes the new version contains only script names, one per line
+    const scriptContent = ns.read("dealWithTheDevil_NEW.js");
+    const newScriptList = scriptContent.split("\n").map(line => line.trim()).filter(line => line && !line.startsWith("*"));
 
     // Determine new scripts that need to be downloaded
-    newScripts = newScriptList.filter(script => !initialScripts.includes(script));
+    const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
 
     // Download the new scripts
     if (await downloadScripts(newScripts)) {
