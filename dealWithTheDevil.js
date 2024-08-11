@@ -15,15 +15,16 @@ export async function main(ns) {
   // List of all scripts to download
   const scripts = [
     "library.js",
-    "hack.js",               // Core hacking script
-    "grow.js",               // Script to grow money on servers
-    "weaken.js",             // Script to reduce server security
-    "earlyGameHack.js",       //for when low ram
+    "hack.js",                    // Core hacking script
+    "grow.js",                    // Script to grow money on servers
+    "weaken.js",                  // Script to reduce server security
+    "earlyGameHack.js",           //for when low ram
     "purchasedServerManager.js",  // Manages the purchase and upgrade of servers
-    "digger.js",             // Automatically roots hackable servers
-    "dealWithTheDevil.js",   // Script to download and set up everything
-    "Imp.js",                // Manages servers, nuking, and preparation scripts
-    "Daemon.js"              // Main controller script
+    "digger.js",                  // Automatically roots hackable servers
+    "dealWithTheDevil.js",        // Script to download and set up everything
+    "Goblin.js",                  // early game manager
+    "Imp.js",                     // Manages servers, nuking, and preparation scripts
+    "Daemon.js"                   // Main controller script
   ];
 
   const maxRetries = 3;  // Maximum number of retry attempts for each download

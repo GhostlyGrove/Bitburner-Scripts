@@ -10,6 +10,17 @@
 
 /** @param {NS} ns **/
 export async function main(ns) {
+
+  // Check if there's already an instance of this script running
+  const runningScripts = ns.ps("home");  // Get a list of running scripts on the home server
+  for (const script of runningScripts) {
+    if (script.filename === ns.getScriptName() && script.args.toString() === ns.args.toString() && script.pid !== ns.pid) {
+      ns.kill(script.pid);  // Kill the existing instance
+      ns.tprint("Existing instance of purchasedServerManager.js killed.");
+      break;
+    }
+  }
+
   ns.disableLog("ALL");  // Disable all logging messages to keep the output clean and readable
 
   let ram = 8;            // Initial amount of RAM (memory) for new servers (in GB)
@@ -44,8 +55,25 @@ export async function main(ns) {
         await ns.sleep(100); // Pause briefly between each purchase attempt
       }
 
-      // Step 2: Check if upgrading the servers' RAM is possible
+      // Step 1.5: Ensure server names are correct (pserv-0 to pserv-24)
       let purchasedServers = ns.getPurchasedServers(); // Get a list of all the servers you've bought
+      let currentNames = new Set(purchasedServers);
+      for (let j = 0; j < maxServers; j++) {
+        let expectedName = `pserv-${j}`;
+        if (!currentNames.has(expectedName)) {
+          for (const server of purchasedServers) {
+            if (server.startsWith("pserv-") && !currentNames.has(expectedName)) {
+              ns.renamePurchasedServer(server, expectedName);
+              ns.tprint(`Renamed server ${server} to ${expectedName}`);
+              currentNames = new Set(ns.getPurchasedServers()); // Update the list of current names
+              break; // Exit the loop once renamed
+            }
+          }
+        }
+      }
+
+      // Step 2: Check if upgrading the servers' RAM is possible
+      purchasedServers = ns.getPurchasedServers(); // Get a list of all the servers you've bought
 
       // If you own at least one server, check if it's time to upgrade the RAM
       if (purchasedServers.length > 0) {

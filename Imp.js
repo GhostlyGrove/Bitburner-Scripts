@@ -9,10 +9,10 @@ import { rootedServers, crawlerHackable } from "library.js";
  * 3. Runs server preparation tasks, including growing money and weakening security.
  * 4. Ensures essential scripts (purchasedServerManager.js and digger.js) are running.
  * 5. Distributes hacking, growing, and weakening tasks across available servers.
- * 6. Deploys earlyGameHack.js when RAM is insufficient.
  * 
  * Runs in a loop, updating server targets and actions every few seconds.
  */
+
 
 /** @param {NS} ns **/
 export async function main(ns) {
@@ -22,7 +22,6 @@ export async function main(ns) {
   const daemonScript = "Daemon.js"; // The advanced script to run once you have Formulas.exe
   const purchasedServerManagerScript = "purchasedServerManager.js"; // Script to manage buying and upgrading servers
   const diggerScript = "digger.js"; // Script to gain root access on hackable servers
-  const earlyGameHackScript = "earlyGameHack.js"; // Script to run when RAM is insufficient
   const delayBetweenCycles = 200; // Delay between each cycle of actions (in milliseconds)
   let serversMaxUpgrades = false;
 
@@ -32,6 +31,15 @@ export async function main(ns) {
   // Inform the user about the Imp's duties
   ns.tprint("The imp is here to help. He will handle buying/upgrading personal servers, nuking everything he can, and making money.");
   ns.tprint("Once you have Formulas.exe he will summon the Daemon.");
+
+  // If Formulas.exe is found, switch to the more advanced Daemon.js script
+  if (ns.fileExists("Formulas.exe", "home")) {
+    ns.tprint("Formulas.exe detected. Sacrificing Imp to summon the Daemon.");
+    ns.killall("home", true);
+    await ns.sleep(500);
+    ns.exec(daemonScript, "home"); // Run Daemon.js
+    ns.exit(); // Stop the Imp script
+  }
 
   // Prepare the target servers to maximize money and minimize security
   ns.tprint("Preparing servers");
@@ -45,6 +53,8 @@ export async function main(ns) {
       // If Formulas.exe is found, switch to the more advanced Daemon.js script
       if (ns.fileExists("Formulas.exe", "home")) {
         ns.tprint("Formulas.exe detected. Sacrificing Imp to summon the Daemon.");
+        ns.killall("home", true);
+        await ns.sleep(500);
         ns.exec(daemonScript, "home"); // Run Daemon.js
         ns.exit(); // Stop the Imp script
       }
@@ -86,67 +96,89 @@ export async function main(ns) {
         ns.print(`All servers are rooted. ${diggerScript} is not needed.`);
       }
 
-      // Monitor RAM conditions and deploy earlyGameHack.js if necessary
-      if (!hasSufficientRAM(ns, myServers)) {
-        ns.print("Insufficient RAM detected. Deploying earlyGameHack.js script.");
-        deployEarlyGameHack(ns, myServers, earlyGameHackScript);
-        await ns.sleep(delayBetweenCycles);
-        continue; // Skip the rest of the loop and restart after the delay
-      } else {
-        // If RAM conditions are sufficient and earlyGameHack.js was running, stop it
-        for (const server of myServers) {
-          if (ns.isRunning(earlyGameHackScript, server)) {
-            ns.print(`Sufficient RAM detected. Stopping ${earlyGameHackScript} on ${server}.`);
-            ns.kill(earlyGameHackScript, server); // Stop earlyGameHack.js
-          }
+      if (shouldRunGoblin(ns)) {
+        if (!ns.isRunning("Goblin.js", "home")) {
+          ns.print("RAM conditions not met. Starting Goblin.js.");
+          ns.tprint("You aren't ready for the imp either. Here's a Goblin for your troubles.");
+          ns.tprint("The Imp will stick around and get rid of the Goblin once you have more ram on home or a purchased server,");
+          ns.writePort(2, myServers);
+          ns.exec("Goblin.js", "home"); // Start Goblin.js
         }
 
-        // Proceed with normal operations if RAM conditions are met
-        ns.print("Sufficient RAM detected. Proceeding with normal operations.");
-
-        // Track which scripts (weaken, grow, hack) need to run on each target server
-        let scriptsRunning = {};
-
-        for (const targetServer of targetServers) {
-          // Calculate the number of threads needed to hack 50% of the server's max money
-          const moneyTarget = ns.getServerMaxMoney(targetServer) * 0.50;
-          const hackAmountPerThread = ns.hackAnalyze(targetServer);
-          const hackThreads = Math.ceil(moneyTarget / hackAmountPerThread);
-
-          // Calculate the number of threads needed to grow the server's money by 50%
-          const growThreads = Math.ceil(ns.growthAnalyze(targetServer, 1.5));
-
-          // Calculate the number of threads needed to weaken the server's security to its minimum
-          const securityTarget = ns.getServerMinSecurityLevel(targetServer);
-          const currentSecurity = ns.getServerSecurityLevel(targetServer);
-          const securityToLower = currentSecurity - securityTarget;
-          const weakenThreads = Math.ceil(securityToLower / ns.weakenAnalyze(1));
-
-          // Prioritize weakening security, then growing money, and finally hacking
-          if (currentSecurity > securityTarget) {
-            if (!scriptsRunning[targetServer]) scriptsRunning[targetServer] = { weaken: 0, grow: 0, hack: 0 };
-            scriptsRunning[targetServer].weaken = Math.max(scriptsRunning[targetServer].weaken, weakenThreads);
-          } else if (ns.getServerMoneyAvailable(targetServer) < moneyTarget) {
-            if (!scriptsRunning[targetServer]) scriptsRunning[targetServer] = { weaken: 0, grow: 0, hack: 0 };
-            scriptsRunning[targetServer].grow = Math.max(scriptsRunning[targetServer].grow, growThreads);
-          } else {
-            if (!scriptsRunning[targetServer]) scriptsRunning[targetServer] = { weaken: 0, grow: 0, hack: 0 };
-            scriptsRunning[targetServer].hack = Math.max(scriptsRunning[targetServer].hack, hackThreads);
-          }
+        // Monitor RAM until conditions are met
+        while (shouldRunGoblin(ns)) {
+          myServers = ns.getPurchasedServers();
+          myServers.push("home");
+          ns.writePort(2, myServers);
+          await ns.sleep(60000); // Wait before rechecking RAM conditions
         }
 
-        // Execute the required scripts (weaken, grow, hack) on each target server
-        for (const targetServer of Object.keys(scriptsRunning)) {
-          const scripts = scriptsRunning[targetServer];
-          if (scripts.weaken > 0) {
-            distributeThreads(ns, myServers, "weaken.js", scripts.weaken, targetServer);
-          }
-          if (scripts.grow > 0) {
-            distributeThreads(ns, myServers, "grow.js", scripts.grow, targetServer);
-          }
-          if (scripts.hack > 0) {
-            distributeThreads(ns, myServers, "hack.js", scripts.hack, targetServer);
-          }
+        // Stop Goblin.js and any earlyGameHack.js scripts
+        if (ns.isRunning("Goblin.js", "home")) {
+          ns.print("RAM conditions met. Stopping Goblin.js.");
+          ns.tprint("RAM conditions met. Killing the Goblin.");
+          ns.kill("Goblin.js", "home");
+        }
+        ns.kill("earlyGameHack.js", "home"); // Kill earlyGameHack.js script if running
+
+        const personalServers = ns.getPurchasedServers();
+
+        for (const server of personalServers) {  // Kill earlyGameHack.js script on purchased servers if running
+          ns.kill("earlyGameHack.js", server);
+        }
+        ns.print("Resuming normal operations.");
+      }
+
+
+      // Recalculate target servers to ensure we're targeting the best ones
+      targetServers = ns.args.length > 0 ? ns.args : findSimpleTargets(ns);
+
+      // Re-update the list of servers (home + purchased servers)
+      myServers = ns.getPurchasedServers();
+      myServers.push("home");
+
+      // Track which scripts (weaken, grow, hack) need to run on each target server
+      let scriptsRunning = {};
+
+      for (const targetServer of targetServers) {
+        // Calculate the number of threads needed to hack 50% of the server's max money
+        const moneyTarget = ns.getServerMaxMoney(targetServer) * 0.50;
+        const hackAmountPerThread = ns.hackAnalyze(targetServer);
+        const hackThreads = Math.ceil(moneyTarget / hackAmountPerThread);
+
+        // Calculate the number of threads needed to grow the server's money by 50%
+        const growThreads = Math.ceil(ns.growthAnalyze(targetServer, 1.5));
+
+        // Calculate the number of threads needed to weaken the server's security to its minimum
+        const securityTarget = ns.getServerMinSecurityLevel(targetServer);
+        const currentSecurity = ns.getServerSecurityLevel(targetServer);
+        const securityToLower = currentSecurity - securityTarget;
+        const weakenThreads = Math.ceil(securityToLower / ns.weakenAnalyze(1));
+
+        // Prioritize weakening security, then growing money, and finally hacking
+        if (currentSecurity > securityTarget) {
+          if (!scriptsRunning[targetServer]) scriptsRunning[targetServer] = { weaken: 0, grow: 0, hack: 0 };
+          scriptsRunning[targetServer].weaken = Math.max(scriptsRunning[targetServer].weaken, weakenThreads);
+        } else if (ns.getServerMoneyAvailable(targetServer) < moneyTarget) {
+          if (!scriptsRunning[targetServer]) scriptsRunning[targetServer] = { weaken: 0, grow: 0, hack: 0 };
+          scriptsRunning[targetServer].grow = Math.max(scriptsRunning[targetServer].grow, growThreads);
+        } else {
+          if (!scriptsRunning[targetServer]) scriptsRunning[targetServer] = { weaken: 0, grow: 0, hack: 0 };
+          scriptsRunning[targetServer].hack = Math.max(scriptsRunning[targetServer].hack, hackThreads);
+        }
+      }
+
+      // Execute the required scripts (weaken, grow, hack) on each target server
+      for (const targetServer of Object.keys(scriptsRunning)) {
+        const scripts = scriptsRunning[targetServer];
+        if (scripts.weaken > 0) {
+          distributeThreads(ns, myServers, "weaken.js", scripts.weaken, targetServer);
+        }
+        if (scripts.grow > 0) {
+          distributeThreads(ns, myServers, "grow.js", scripts.grow, targetServer);
+        }
+        if (scripts.hack > 0) {
+          distributeThreads(ns, myServers, "hack.js", scripts.hack, targetServer);
         }
       }
 
@@ -177,70 +209,78 @@ function findSimpleTargets(ns) {
 }
 
 // Function to check if digger.js has rooted all hackable servers
-function hasDiggerRootedAll(ns, targetServers) {
-  let rootedServersList = rootedServers(ns); // Get list of rooted servers
-  return targetServers.every(server => rootedServersList.includes(server));
+function hasDiggerRootedAll(ns, hackableServers) {
+  const allRootedServers = rootedServers(ns);
+  return hackableServers.every(server => allRootedServers.includes(server));
 }
 
-// Function to prepare servers by copying essential scripts and checking for necessary RAM
-async function prepareServers(ns, targetServers) {
-  const essentialScripts = ["grow.js", "hack.js", "weaken.js"];
+// Function to prepare servers for hacking by growing money and weakening security
+async function prepareServers(ns, servers) {
+  const preparationDelay = 5000; // Delay between preparation steps (in milliseconds)
+  let myServers = ns.getPurchasedServers();
+  myServers.push("home");
 
-  for (const server of targetServers) {
-    if (ns.getServerMaxRam(server) > 0) {
-      for (const script of essentialScripts) {
-        if (!ns.fileExists(script, server)) {
-          ns.tprint(`Copying ${script} to ${server}`);
-          ns.scp(script, server);
-        }
+  for (const targetServer of servers) {
+    try {
+      const moneyAvailable = ns.getServerMoneyAvailable(targetServer);
+      const maxMoney = ns.getServerMaxMoney(targetServer);
+      const minSecurity = ns.getServerMinSecurityLevel(targetServer);
+      const currentSecurity = ns.getServerSecurityLevel(targetServer);
+
+      // Determine if the server needs more money or lower security
+      const needGrow = moneyAvailable < maxMoney && moneyAvailable > 0;
+      const needWeaken = currentSecurity > minSecurity;
+
+      if (needWeaken) {
+        // Weaken security first
+        ns.print(`Weakening security of ${targetServer}.`);
+        await distributeThreads(ns, myServers, "weaken.js", 1, targetServer);
+        await ns.sleep(preparationDelay); // Wait between operations
       }
-    }
-  }
-}
 
-// Function to check if there is enough RAM available on servers
-function hasSufficientRAM(ns, servers) {
-  let sufficientRAM = true;
-  for (const server of servers) {
-    if (ns.getServerMaxRam(server) < 64) {
-      sufficientRAM = false;
-    }
-  }
-  return sufficientRAM;
-}
-
-// Function to deploy earlyGameHack.js on servers when RAM is insufficient
-function deployEarlyGameHack(ns, servers, script) {
-  for (const server of servers) {
-    // Check if earlyGameHack.js is already running
-    if (!ns.isRunning(script, server)) {
-      ns.killall(server); // Stop all other scripts on the server
-      const threads = Math.floor((ns.getServerMaxRam(server) - ns.getServerUsedRam(server)) / ns.getScriptRam(script));
-      if (threads > 0) {
-        ns.exec(script, server, threads, "joesguns");
-        ns.print(`Deployed ${script} on ${server} with ${threads} threads targeting joesguns.`);
-      } else {
-        ns.print(`Not enough RAM to run ${script} on ${server}.`);
+      if (needGrow) {
+        // Grow money second
+        ns.print(`Growing money on ${targetServer}.`);
+        await distributeThreads(ns, myServers, "grow.js", 1, targetServer);
+        await ns.sleep(preparationDelay); // Wait between operations
       }
-    } else {
-      ns.print(`${script} is already running on ${server}.`);
+    } catch (error) {
+      ns.tprint(`ERROR: Failed to prepare ${targetServer} due to: ${error}`);
     }
   }
 }
 
-// Function to distribute threads across available servers
-function distributeThreads(ns, servers, script, threadCount, target) {
-  const totalRam = servers.reduce((total, server) => total + ns.getServerMaxRam(server), 0);
-  const requiredRam = ns.getScriptRam(script);
-  const availableThreads = Math.floor(totalRam / requiredRam);
+function distributeThreads(ns, servers, scriptName, totalThreads, target) {
+  let remainingThreads = totalThreads;
 
   for (const server of servers) {
-    const serverRam = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
-    if (serverRam >= requiredRam) {
-      const threads = Math.min(Math.floor(serverRam / requiredRam), availableThreads);
-      ns.exec(script, server, threads, target);
-      availableThreads -= threads;
-      if (availableThreads <= 0) break;
+    // Calculate available RAM on the server
+    const ramAvailable = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
+    // Calculate how many threads can be run with the available RAM
+    const threads = Math.floor(ramAvailable / ns.getScriptRam(scriptName));
+
+    if (threads > 0) {
+      // Determine how many threads to run on this server
+      const threadsToRun = Math.min(remainingThreads, threads);
+      ns.exec(scriptName, server, threadsToRun, target); // Execute the script with as many threads as possible
+      remainingThreads -= threadsToRun; // Subtract the number of threads just used
+
+      // Break the loop if all threads have been distributed
+      if (remainingThreads <= 0) break;
     }
   }
+
+  // If there are remaining threads that couldn't be distributed, log the information
+  if (remainingThreads > 0) {
+    ns.print(`Warning: ${remainingThreads} threads could not be distributed due to insufficient RAM on available servers.`);
+  }
+}
+
+function shouldRunGoblin(ns) {
+  const homeRam = ns.getServerMaxRam("home");
+  const homeRamAvailable = homeRam - ns.getServerUsedRam("home");
+  const purchasedServers = ns.getPurchasedServers();
+  const hasPurchasedServerWith32GB = purchasedServers.some(server => ns.getServerMaxRam(server) >= 32 * 1024);
+
+  return (!hasPurchasedServerWith32GB && homeRam < 64 * 1024) || (purchasedServers.length === 0 && homeRam < 64 * 1024);
 }

@@ -5,7 +5,7 @@ export async function main(ns) {
   const target = "joesguns";
 
   // Defines how much money a server should have before we hack it
-  const moneyThresh = ns.getServerMaxMoney(target) * 9;
+  const moneyThresh = ns.getServerMaxMoney(target) * .9;
 
   // Defines the minimum security level the target server can
   // have. If the target's security level is higher than this,
