@@ -81,7 +81,7 @@ export async function main(ns) {
         let serverInfo = ns.getServer(purchasedServers[0]); // Get details of the first server
 
         // If the next upgrade RAM size is less than the current server's max RAM, double it
-        if (ramUpgrade < serverInfo.maxRam) {
+        if (ramUpgrade <= serverInfo.maxRam) {
           ramUpgrade = serverInfo.maxRam * 2;
         }
         let upgradeCost = ns.getPurchasedServerUpgradeCost(purchasedServers[0], ramUpgrade * 2); // Get the cost of the upgrade
