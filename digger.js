@@ -13,17 +13,17 @@ import * as lib from "library.js";
 export async function main(ns) {
   // Get a list of all hackable servers
   let targets = lib.crawlerHackable(ns);
-  
+
   // Get the total number of port-opening tools available
   let virusTotal = lib.portViruses(ns);
-  
+
   // List to keep track of servers that we have already rooted
   let rootedServers = [];
 
   ns.print("Starting the server rooting process...");
 
   while (true) {
-    await ns.sleep(100);  // Pause briefly to avoid excessive updates
+    await ns.sleep(500);  // Pause briefly to avoid excessive updates
 
     // Update the count of port-opening tools
     virusTotal = lib.portViruses(ns);
