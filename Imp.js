@@ -134,9 +134,16 @@ export async function main(ns) {
         if (ns.isRunning("Goblin.js", "home")) {
           ns.print("RAM conditions met. Stopping Goblin.js.");
           ns.tprint("RAM conditions met. Killing the Goblin.");
-          ns.kill("Goblin.js", "home");
+
+          runningScripts = ns.ps("home");
+          // Kill all scripts except purchasedServerManager.js, digger.js, and Imp.js
+          for (const script of runningScripts) {
+            const scriptName = script.filename;
+            if (!["purchasedServerManager.js", "digger.js", "Imp.js"].includes(scriptName)) {
+              ns.kill(scriptName, "home");
+            }
+          }
         }
-        ns.kill("earlyGameHack.js", "home"); // Kill earlyGameHack.js script if running
 
         const personalServers = ns.getPurchasedServers();
 
