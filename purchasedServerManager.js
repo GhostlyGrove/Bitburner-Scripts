@@ -134,7 +134,7 @@ export async function main(ns) {
                 if (failureCounter >= maxFailures) {
                   ns.print(`ERROR: Too many consecutive upgrade failures. Resetting upgrade attempts.`);
                   failureCounter = 0; // Reset the failure counter and continue the loop
-                  break; // Exit the for loop to retry the upgrade process
+                  ns.exit(); // Exit the for loop to retry the upgrade process
                 }
               }
             } else {
@@ -145,7 +145,7 @@ export async function main(ns) {
               if (insufficientFundsCounter >= maxInsufficientFunds) {
                 ns.print(`ERROR: Too many consecutive insufficient funds events. Resetting upgrade attempts.`);
                 insufficientFundsCounter = 0; // Reset the insufficient funds counter and continue the loop
-                break; // Exit the for loop to retry the upgrade process
+                ns.exit(); // Exit the for loop to retry the upgrade process
               }
             }
           }
