@@ -127,7 +127,7 @@ export async function main(ns) {
           myServers = ns.getPurchasedServers();
           myServers.push("home");
           ns.writePort(2, myServers);
-          await ns.sleep(60000); // Wait before rechecking RAM conditions
+          await ns.sleep(30000); // Wait before rechecking RAM conditions
         }
 
         // Stop Goblin.js and any earlyGameHack.js scripts
@@ -284,7 +284,13 @@ function distributeThreads(ns, servers, scriptName, totalThreads, target) {
     }
 
     const scriptRam = ns.getScriptRam(scriptName);
-    const ramAvailable = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
+    let ramAvailable = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
+
+    if (server === "home") {
+      // Reserve 10% of the home server's maximum RAM
+      const ramReserve = 0.10 * ns.getServerMaxRam(server);
+      ramAvailable -= ramReserve;
+    }
 
     // Check if the server has enough RAM to run the script
     if (ramAvailable < scriptRam) {
@@ -315,19 +321,39 @@ function distributeThreads(ns, servers, scriptName, totalThreads, target) {
   }
 }
 
-// Function to check if the script should run Goblin.js based on RAM conditions
 function shouldRunGoblin(ns) {
-  // Convert RAM thresholds to MB
-  const minHomeRAM = 64 * 1024; // 64 GB in MB
-  const minPurchasedServerRAM = 16 * 1024; // 16 GB in MB
+  const minHomeRAM = 64;  // 64 GB
+  const minPurchasedServerRAM = 16;  // 16 GB
+  const highPurchasedServerRAM = 64;  // 64 GB
 
-  // Get home server RAM
   let homeRAM = ns.getServerMaxRam("home");
-
-  // Get purchased servers and check their RAM
   let purchasedServers = ns.getPurchasedServers();
-  let lowRAM = purchasedServers.every(server => ns.getServerMaxRam(server) < minPurchasedServerRAM);
 
-  // Return true if home RAM is below the threshold or all purchased servers have less RAM than the threshold
-  return homeRAM < minHomeRAM || lowRAM;
+  ns.print(`Home server RAM: ${homeRAM} GB`);
+  ns.print(`Purchased servers: ${purchasedServers.map(server => `${server}: ${ns.getServerMaxRam(server)} GB`).join(", ")}`);
+
+  // Check if any purchased server has 64 GB or more of RAM
+  for (let server of purchasedServers) {
+    let serverRam = ns.getServerMaxRam(server);
+    ns.print(`Checking server ${server} with ${serverRam} GB RAM`);
+    if (serverRam >= highPurchasedServerRAM) {
+      ns.print(`Server ${server} has 64 GB or more of RAM. Goblin.js should not run.`);
+      return false;
+    }
+  }
+
+  // Check if home RAM is below 64 GB
+  if (homeRAM < minHomeRAM) {
+    ns.print("Home server has less than 64 GB of RAM. Goblin.js should run.");
+    return true;
+  }
+
+  // Check if all purchased servers have less than 16 GB of RAM
+  if (purchasedServers.every(server => ns.getServerMaxRam(server) < minPurchasedServerRAM)) {
+    ns.print("All purchased servers have less than 16 GB of RAM. Goblin.js should run.");
+    return true;
+  }
+
+  ns.print("Conditions not met for running Goblin.js.");
+  return false;
 }
