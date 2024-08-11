@@ -15,7 +15,7 @@ export async function main(ns) {
   // List of all initial scripts to download
   const initialScripts = [
     "library.js",
-    "killAll.js",
+    "killAll",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
@@ -79,14 +79,14 @@ export async function main(ns) {
     // Debug: print the extracted script names
     ns.tprint("Extracted script names:\n" + newScriptList.join("\n"));
 
-    // Determine new scripts that need to be downloaded
-    const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
+    // Determine scripts that need to be downloaded (if not present on the home server)
+    const scriptsToDownload = newScriptList.filter(script => !ns.fileExists(script));
 
-    // Debug: print the new scripts to be downloaded
-    ns.tprint("New scripts to be downloaded:\n" + newScripts.join("\n"));
+    // Debug: print the scripts to be downloaded
+    ns.tprint("Scripts to be downloaded:\n" + scriptsToDownload.join("\n"));
 
     // Download the new scripts
-    if (await downloadScripts(newScripts)) {
+    if (await downloadScripts(scriptsToDownload)) {
       // Only run Daemon.js if all scripts were downloaded successfully
       if (ns.fileExists("Daemon.js")) {
         ns.tprint("Running Daemon.js...");
@@ -95,7 +95,7 @@ export async function main(ns) {
         ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
       }
     } else {
-      ns.tprint("ERROR: Not all new scripts were downloaded successfully. Cannot execute Daemon.js.");
+      ns.tprint("ERROR: Not all scripts were downloaded successfully. Cannot execute Daemon.js.");
     }
   } else {
     ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
