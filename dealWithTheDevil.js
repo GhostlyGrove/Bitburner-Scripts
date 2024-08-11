@@ -15,7 +15,7 @@ export async function main(ns) {
   // List of all initial scripts to download
   const initialScripts = [
     "library.js",
-    "killAll",
+    "killAll.js",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
@@ -72,10 +72,18 @@ export async function main(ns) {
 
     // Read the new script list from the downloaded script
     const scriptContent = ns.read("dealWithTheDevil_NEW.js");
+    ns.tprint("New dealWithTheDevil.js content:\n" + scriptContent);  // Debug: print content to verify format
+
     const newScriptList = extractScriptNames(scriptContent);
+
+    // Debug: print the extracted script names
+    ns.tprint("Extracted script names:\n" + newScriptList.join("\n"));
 
     // Determine new scripts that need to be downloaded
     const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
+
+    // Debug: print the new scripts to be downloaded
+    ns.tprint("New scripts to be downloaded:\n" + newScripts.join("\n"));
 
     // Download the new scripts
     if (await downloadScripts(newScripts)) {
