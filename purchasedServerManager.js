@@ -14,7 +14,7 @@ export async function main(ns) {
         ns.tprint("Purchased server: " + serverName);
       } else {
         ns.print(`Not enough money to buy ${serverName}`);
-        await ns.sleep(60000); // Wait 1 minute before trying again
+        await ns.sleep(30000); // Wait 30 seconds before trying again
       }
     }
   }
@@ -56,6 +56,6 @@ export async function main(ns) {
       await ns.writePort(1, true);
       return;
     }
-    await ns.sleep(60000); // Wait 1 minute before checking again
+    await ns.sleep(30000); // Wait 30 seconds before checking again
   }
 }
