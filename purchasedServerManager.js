@@ -58,20 +58,36 @@ export async function main(ns) {
 
       // Step 1.5: Ensure server names are correct (pserv-0 to pserv-24)
       let purchasedServers = ns.getPurchasedServers(); // Get a list of all the servers you've bought
-      let currentNames = new Set(purchasedServers);
-      for (let j = 0; j < maxServers; j++) {
-        let expectedName = `pserv-${j}`;
-        if (!currentNames.has(expectedName)) {
+
+      // Rename servers to ensure they are named pserv-0, pserv-1, ..., pserv-n
+      for (let index = 0; index < purchasedServers.length; index++) {
+        let server = purchasedServers[index];
+        let expectedName = `pserv-${index}`;
+
+        // Rename the server if its name does not match the expected name
+        if (server !== expectedName) {
+          ns.renamePurchasedServer(server, expectedName);
+          ns.tprint(`Renamed server ${server} to ${expectedName}`);
+        }
+      }
+
+      // Ensure that if there are more servers than expected, they are renamed correctly
+      for (let index = purchasedServers.length; index < maxServers; index++) {
+        let expectedName = `pserv-${index}`;
+
+        // Check if the name pserv-index is already taken and rename if needed
+        if (!purchasedServers.includes(expectedName)) {
           for (const server of purchasedServers) {
-            if (server.startsWith("pserv-") && !currentNames.has(expectedName)) {
+            if (server.startsWith("pserv-") && !purchasedServers.includes(expectedName)) {
               ns.renamePurchasedServer(server, expectedName);
               ns.tprint(`Renamed server ${server} to ${expectedName}`);
-              currentNames = new Set(ns.getPurchasedServers()); // Update the list of current names
+              purchasedServers = ns.getPurchasedServers(); // Update the list of current names
               break; // Exit the loop once renamed
             }
           }
         }
       }
+
 
       // Step 2: Check if upgrading the servers' RAM is possible
       purchasedServers = ns.getPurchasedServers(); // Get a list of all the servers you've bought
