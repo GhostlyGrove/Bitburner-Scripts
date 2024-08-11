@@ -24,6 +24,7 @@ export async function main(ns) {
   const diggerScript = "digger.js"; // Script to gain root access on hackable servers
   const delayBetweenCycles = 200; // Delay between each cycle of actions (in milliseconds)
   let serversMaxUpgrades = false;
+  let runningScripts = ns.ps("home");
 
   // Determine the target servers to hack based on script arguments or using a custom function
   let targetServers = ns.args.length > 0 ? ns.args : findSimpleTargets(ns);
@@ -35,8 +36,16 @@ export async function main(ns) {
   // If Formulas.exe is found, switch to the more advanced Daemon.js script
   if (ns.fileExists("Formulas.exe", "home")) {
     ns.tprint("Formulas.exe detected. Sacrificing Imp to summon the Daemon.");
-    ns.killall("home", true);
-    await ns.sleep(500);
+
+    runningScripts = ns.ps("home");
+    // Kill all scripts except purchasedServerManager.js, digger.js, and Imp.js
+    for (const script of runningScripts) {
+      const scriptName = script.filename;
+      if (!["purchasedServerManager.js", "digger.js", "Imp.js"].includes(scriptName)) {
+        ns.kill(scriptName, "home");
+      }
+    }
+    await ns.sleep(1000);
     ns.exec(daemonScript, "home"); // Run Daemon.js
     ns.exit(); // Stop the Imp script
   }
@@ -53,8 +62,16 @@ export async function main(ns) {
       // If Formulas.exe is found, switch to the more advanced Daemon.js script
       if (ns.fileExists("Formulas.exe", "home")) {
         ns.tprint("Formulas.exe detected. Sacrificing Imp to summon the Daemon.");
-        ns.killall("home", true);
-        await ns.sleep(500);
+
+        runningScripts = ns.ps("home");
+        // Kill all scripts except purchasedServerManager.js, digger.js, and Imp.js
+        for (const script of runningScripts) {
+          const scriptName = script.filename;
+          if (!["purchasedServerManager.js", "digger.js", "Imp.js"].includes(scriptName)) {
+            ns.kill(scriptName, "home");
+          }
+        }
+        await ns.sleep(1000);
         ns.exec(daemonScript, "home"); // Run Daemon.js
         ns.exit(); // Stop the Imp script
       }
