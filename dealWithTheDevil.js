@@ -1,9 +1,7 @@
 /**
- * kill all scripts before running
- * go home
- * run the script
- * automatically starts stuff that needs to start
- * afterwards if you need to restart daemon or imp just kill the daemon or imp script you have running first
+ * This script downloads and executes necessary scripts for Bitburner.
+ * It downloads the latest version of itself, updates the list of scripts,
+ * and then runs the main controller script if all scripts are successfully downloaded.
  */
 
 /** @param {NS} ns **/
@@ -12,7 +10,7 @@ export async function main(ns) {
 
   const repoUrl = "https://raw.githubusercontent.com/GhostlyGrove/Bitburner-Scripts/main/";
 
-  // List of all scripts to download (initial version)
+  // List of all initial scripts to download
   const initialScripts = [
     "library.js",
     "killAll.js",
@@ -72,9 +70,11 @@ export async function main(ns) {
     ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
     // Read the new script list from the downloaded script
-    // This assumes the new version contains only script names, one per line
     const scriptContent = ns.read("dealWithTheDevil_NEW.js");
-    const newScriptList = scriptContent.split("\n").map(line => line.trim()).filter(line => line && !line.startsWith("*"));
+    const newScriptList = scriptContent
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith("*") && !line.startsWith("/**")); // Filtering out comments and invalid lines
 
     // Determine new scripts that need to be downloaded
     const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
