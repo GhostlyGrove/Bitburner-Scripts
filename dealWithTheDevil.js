@@ -15,6 +15,7 @@ export async function main(ns) {
   // List of all scripts to download
   const scripts = [
     "library.js",
+    "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
     "weaken.js",                  // Script to reduce server security
