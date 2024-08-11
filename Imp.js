@@ -317,11 +317,17 @@ function distributeThreads(ns, servers, scriptName, totalThreads, target) {
 
 // Function to check if the script should run Goblin.js based on RAM conditions
 function shouldRunGoblin(ns) {
+  // Convert RAM thresholds to MB
+  const minHomeRAM = 64 * 1024; // 64 GB in MB
+  const minPurchasedServerRAM = 16 * 1024; // 16 GB in MB
+
+  // Get home server RAM
   let homeRAM = ns.getServerMaxRam("home");
 
+  // Get purchased servers and check their RAM
   let purchasedServers = ns.getPurchasedServers();
-  let lowRAM = purchasedServers.length === 0 || purchasedServers.every(server => ns.getServerMaxRam(server) < 32000);
-  let homeLowRAM = homeRAM < 64000;
+  let lowRAM = purchasedServers.every(server => ns.getServerMaxRam(server) < minPurchasedServerRAM);
 
-  return lowRAM && homeLowRAM;
+  // Return true if home RAM is below the threshold or all purchased servers have less RAM than the threshold
+  return homeRAM < minHomeRAM || lowRAM;
 }
