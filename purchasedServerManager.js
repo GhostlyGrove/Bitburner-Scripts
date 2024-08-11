@@ -30,12 +30,19 @@ export async function main(ns) {
     }
   }
 
+  let lastUpgradedIndex = -1; // Initialize to -1 to start with the first server
+
   // Upgrade servers evenly
   while (true) {
     let allMaxed = true;
+
+    // Determine the next server to upgrade
+    let startIndex = (lastUpgradedIndex + 1) % maxServers;
     for (let i = 0; i < maxServers; i++) {
-      let serverName = `${serverPrefix}${i}`;
+      let serverIndex = (startIndex + i) % maxServers;
+      let serverName = `${serverPrefix}${serverIndex}`;
       let ram = ns.getServerMaxRam(serverName);
+
       if (ram < maxRam) {
         allMaxed = false;
         let nextRam = ram * 2;
@@ -43,19 +50,22 @@ export async function main(ns) {
           ns.upgradePurchasedServer(serverName, nextRam);
           ns.print(`Upgraded ${serverName} to ${nextRam} GB`);
           ns.tprint(`Upgraded ${serverName} to ${nextRam} GB`);
+          lastUpgradedIndex = serverIndex; // Update the index of the last upgraded server
         } else {
           ns.print(`Not enough money to upgrade ${serverName} to ${nextRam} GB`);
+          await ns.sleep(30000); // Wait 30 seconds before trying again if upgrade fails
         }
-        // Move to the next server for upgrade in the next cycle
         break;
       }
     }
+
     if (allMaxed) {
       ns.print("All servers upgraded to maximum RAM.");
       ns.tprint("All servers upgraded to maximum RAM.");
       await ns.writePort(1, true);
       return;
     }
-    await ns.sleep(30000); // Wait 30 seconds before checking again
+
+    await ns.sleep(30000); // Wait 30 seconds before checking again if not all servers are maxed
   }
 }
