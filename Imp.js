@@ -252,17 +252,39 @@ async function prepareServers(ns, servers) {
 
 function distributeThreads(ns, servers, scriptName, totalThreads, target) {
   let remainingThreads = totalThreads;
+  ns.print(`Distributing ${totalThreads} threads for ${scriptName} on ${servers.length} servers.`);
 
   for (const server of servers) {
-    // Calculate available RAM on the server
-    const ramAvailable = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
-    // Calculate how many threads can be run with the available RAM
-    const threads = Math.floor(ramAvailable / ns.getScriptRam(scriptName));
+    // Ensure the script is copied to the server before attempting to run it
+    if (!ns.fileExists(scriptName, server)) {
+      ns.print(`Script ${scriptName} not found on ${server}. Copying now.`);
+      const copySuccess = ns.scp(scriptName, server);
+      if (!copySuccess) {
+        ns.print(`Failed to copy ${scriptName} to ${server}.`);
+        continue;
+      }
+      ns.print(`Successfully copied ${scriptName} to ${server}.`);
+    }
 
-    if (threads > 0) {
-      // Determine how many threads to run on this server
-      const threadsToRun = Math.min(remainingThreads, threads);
-      ns.exec(scriptName, server, threadsToRun, target); // Execute the script with as many threads as possible
+    const scriptRam = ns.getScriptRam(scriptName);
+    const ramAvailable = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
+
+    // Check if the server has enough RAM to run the script
+    if (ramAvailable < scriptRam) {
+      ns.print(`Not enough RAM on ${server} to run ${scriptName}. Required: ${scriptRam} MB, Available: ${ramAvailable} MB.`);
+      continue;
+    }
+
+    // Calculate how many threads can be run with the available RAM
+    const threads = Math.floor(ramAvailable / scriptRam);
+    const threadsToRun = Math.min(remainingThreads, threads);
+
+    if (threadsToRun > 0) {
+      ns.print(`Running ${threadsToRun} threads of ${scriptName} on ${server}.`);
+      const success = ns.exec(scriptName, server, threadsToRun, target);
+      if (!success) {
+        ns.print(`Failed to start ${scriptName} on ${server}.`);
+      }
       remainingThreads -= threadsToRun; // Subtract the number of threads just used
 
       // Break the loop if all threads have been distributed
@@ -276,11 +298,13 @@ function distributeThreads(ns, servers, scriptName, totalThreads, target) {
   }
 }
 
+// Function to check if the script should run Goblin.js based on RAM conditions
 function shouldRunGoblin(ns) {
-  const homeRam = ns.getServerMaxRam("home");
-  const homeRamAvailable = homeRam - ns.getServerUsedRam("home");
-  const purchasedServers = ns.getPurchasedServers();
-  const hasPurchasedServerWith32GB = purchasedServers.some(server => ns.getServerMaxRam(server) >= 32 * 1024);
+  let homeRAM = ns.getServerMaxRam("home");
 
-  return (!hasPurchasedServerWith32GB && homeRam < 64 * 1024) || (purchasedServers.length === 0 && homeRam < 64 * 1024);
+  let purchasedServers = ns.getPurchasedServers();
+  let lowRAM = purchasedServers.length === 0 || purchasedServers.every(server => ns.getServerMaxRam(server) < 32000);
+  let homeLowRAM = homeRAM < 64000;
+
+  return lowRAM && homeLowRAM;
 }
