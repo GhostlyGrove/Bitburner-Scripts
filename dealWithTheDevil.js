@@ -71,10 +71,7 @@ export async function main(ns) {
 
     // Read the new script list from the downloaded script
     const scriptContent = ns.read("dealWithTheDevil_NEW.js");
-    const newScriptList = scriptContent
-      .split("\n")
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith("*") && !line.startsWith("/**")); // Filtering out comments and invalid lines
+    const newScriptList = eval(`(${scriptContent})`); // Assuming the content is a JSON array of script names
 
     // Determine new scripts that need to be downloaded
     const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
