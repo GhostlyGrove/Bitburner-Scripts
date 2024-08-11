@@ -18,6 +18,7 @@ export async function main(ns) {
     "hack.js",               // Core hacking script
     "grow.js",               // Script to grow money on servers
     "weaken.js",             // Script to reduce server security
+    "earlyGameHack.js",       //for when low ram
     "purchasedServerManager.js",  // Manages the purchase and upgrade of servers
     "digger.js",             // Automatically roots hackable servers
     "dealWithTheDevil.js",   // Script to download and set up everything
