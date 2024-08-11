@@ -1,7 +1,9 @@
 /**
- * This script downloads and executes necessary scripts for Bitburner.
- * It downloads the latest version of itself, updates the list of scripts,
- * and then runs the main controller script if all scripts are successfully downloaded.
+ * kill all scripts before running
+ * go home
+ * run the script
+ * automatically starts stuff that needs to start
+ * afterwards if you need to restart daemon or imp just kill the daemon or imp script you have running first
  */
 
 /** @param {NS} ns **/
@@ -13,7 +15,7 @@ export async function main(ns) {
   // List of all initial scripts to download
   const initialScripts = [
     "library.js",
-    "killAll.js",
+    "killAll",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
@@ -27,7 +29,6 @@ export async function main(ns) {
     "Daemon.js"                   // Main controller script
   ];
 
-  // Function to download scripts with retry logic
   async function downloadScripts(scripts) {
     const maxRetries = 3;  // Maximum number of retry attempts for each download
     let allDownloadsSuccessful = true;  // Flag to track if all downloads were successful
@@ -71,7 +72,7 @@ export async function main(ns) {
 
     // Read the new script list from the downloaded script
     const scriptContent = ns.read("dealWithTheDevil_NEW.js");
-    const newScriptList = eval(`(${scriptContent})`); // Assuming the content is a JSON array of script names
+    const newScriptList = extractScriptNames(scriptContent);
 
     // Determine new scripts that need to be downloaded
     const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
@@ -91,4 +92,20 @@ export async function main(ns) {
   } else {
     ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
   }
+}
+
+// Function to extract script names from the new version of dealWithTheDevil.js
+function extractScriptNames(scriptContent) {
+  const scriptLines = scriptContent.split("\n");
+  const scriptNames = [];
+
+  for (const line of scriptLines) {
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('"') && trimmedLine.endsWith('",')) {
+      const scriptName = trimmedLine.slice(1, -2);  // Remove surrounding quotes and comma
+      scriptNames.push(scriptName);
+    }
+  }
+
+  return scriptNames;
 }
