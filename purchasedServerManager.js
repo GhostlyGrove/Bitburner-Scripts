@@ -30,8 +30,8 @@ export async function main(ns) {
         let cost = ns.getPurchasedServerCost(ram); // Get the cost to buy a server with the current RAM size
         availableMoney = ns.getServerMoneyAvailable("home"); // Update the amount of available money
 
-        // Only buy a server if you have more than double the required money (50% of your funds)
-        if (cost < availableMoney * 0.5) {
+        // Only buy a server if it costs less than 90% of your funds
+        if (cost < availableMoney * 0.9) {
           ns.print(`Purchasing server pserv-${i} with ${ram}GB RAM for ${ns.formatNumber(cost)}`);
           if (ns.purchaseServer("pserv-" + i, ram)) {
             i++; // If purchase is successful, move to the next server
@@ -56,7 +56,7 @@ export async function main(ns) {
           ramUpgrade = serverInfo.maxRam * 2;
         }
         let upgradeCost = ns.getPurchasedServerUpgradeCost(purchasedServers[0], ramUpgrade * 2); // Get the cost of the upgrade
-        if (upgradeCost < availableMoney * 0.1) { // Upgrade if the cost is less than 10% of your available money
+        if (upgradeCost < availableMoney * 0.5) { // Upgrade if the cost is less than 50% of your available money
           ns.print(`Affordable to upgrade servers from ${ramUpgrade}GB to ${ramUpgrade * 2}GB RAM`);
           ramUpgrade *= 2; // Double the RAM size for the next upgrade
         }
@@ -73,8 +73,8 @@ export async function main(ns) {
           if (ramUpgrade > oldRam) {
             let upgradeCost = ns.getPurchasedServerUpgradeCost(server, ramUpgrade); // Get the upgrade cost
 
-            // Upgrade the server if the cost is less than 10% of your available money
-            if (upgradeCost < availableMoney * 0.1) {
+            // Upgrade the server if the cost is less than 50% of your available money
+            if (upgradeCost < availableMoney * 0.5) {
               ns.print(`Upgrading server ${server} to ${ramUpgrade}GB RAM for ${ns.formatNumber(upgradeCost)}`);
               if (ns.upgradePurchasedServer(server, ramUpgrade)) {
                 ns.print(`Successfully upgraded ${server} to ${ramUpgrade}GB RAM`);

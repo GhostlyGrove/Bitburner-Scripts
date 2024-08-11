@@ -1,47 +1,28 @@
-/** 
- * @param {NS} ns 
- * Self-contained basic looping script with weaken, grow, and hack logic.
- */
+//earlyGameHack.js
 
+/** @param {NS} ns */
 export async function main(ns) {
-  // Set your target server
-  const target = ns.args[0]; // Change this to your desired target
+  const target = "joesguns";
 
-  // Set thresholds
-  const securityThreshold = ns.getServerMinSecurityLevel(target) + 2;
-  const moneyThreshold = ns.getServerMaxMoney(target) * 0.9;
+  // Defines how much money a server should have before we hack it
+  const moneyThresh = ns.getServerMaxMoney(target) * 9;
 
-  // Loop indefinitely
+  // Defines the minimum security level the target server can
+  // have. If the target's security level is higher than this,
+  // we'll weaken it before doing anything else
+  const securityThresh = ns.getServerMinSecurityLevel(target) + 2;
+
+  // Infinite loop that continously hacks/grows/weakens the target server
   while (true) {
-    const currentSecurity = ns.getServerSecurityLevel(target);
-    const currentMoney = ns.getServerMoneyAvailable(target);
-
-    // Check if we need to weaken the server
-    if (currentSecurity > securityThreshold) {
-      // Calculate the optimal number of threads for weaken
-      const weakenTime = ns.getWeakenTime(target);
-      const availableThreads = Math.floor((weakenTime / ns.getHackTime(target)) * ns.getPlayer().hackingThreads);
-
-      // Weaken with the calculated number of threads
-      await ns.weaken(target, { threads: availableThreads });
-    }
-    // Check if we need to grow the server's money
-    else if (currentMoney < moneyThreshold) {
-      // Calculate the optimal number of threads for grow
-      const growTime = ns.getGrowTime(target);
-      const availableThreads = Math.floor((growTime / ns.getHackTime(target)) * ns.getPlayer().hackingThreads);
-
-      // Grow with the calculated number of threads
-      await ns.grow(target, { threads: availableThreads });
-    }
-    // Otherwise, hack the server
-    else {
-      // Calculate the optimal number of threads for hack
-      const hackTime = ns.getHackTime(target);
-      const availableThreads = Math.floor(ns.getPlayer().hackingThreads);
-
-      // Hack with the calculated number of threads
-      await ns.hack(target, { threads: availableThreads });
+    if (ns.getServerSecurityLevel(target) > securityThresh) {
+      // If the server's security level is above our threshold, weaken it
+      await ns.weaken(target);
+    } else if (ns.getServerMoneyAvailable(target) < moneyThresh) {
+      // If the server's money is less than our threshold, grow it
+      await ns.grow(target);
+    } else {
+      // Otherwise, hack it
+      await ns.hack(target);
     }
   }
 }
