@@ -339,6 +339,12 @@ function shouldRunGoblin(ns) {
   ns.print(`Home server RAM: ${homeRAM} GB`);
   ns.print(`Purchased servers: ${purchasedServers.map(server => `${server}: ${ns.getServerMaxRam(server)} GB`).join(", ")}`);
 
+  // Check if the home server has 64 GB or more of RAM
+  if (homeRAM >= highPurchasedServerRAM) {
+    ns.print("Home server has 64 GB or more of RAM. Goblin.js should not run.");
+    return false;
+  }
+
   // Check if any purchased server has 64 GB or more of RAM
   for (let server of purchasedServers) {
     let serverRam = ns.getServerMaxRam(server);

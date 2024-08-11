@@ -51,11 +51,15 @@ export async function main(ns) {
           ns.print(`Upgraded ${serverName} to ${nextRam} GB`);
           ns.tprint(`Upgraded ${serverName} to ${nextRam} GB`);
           lastUpgradedIndex = serverIndex; // Update the index of the last upgraded server
+          break;
         } else {
           ns.print(`Not enough money to upgrade ${serverName} to ${nextRam} GB`);
-          await ns.sleep(30000); // Wait 30 seconds before trying again if upgrade fails
         }
-        break;
+      }
+
+      // Skip to the next server if upgrade fails
+      if (i === maxServers - 1) {
+        await ns.sleep(30000); // Wait 30 seconds before checking again if not all servers are maxed
       }
     }
 
@@ -65,7 +69,5 @@ export async function main(ns) {
       await ns.writePort(1, true);
       return;
     }
-
-    await ns.sleep(30000); // Wait 30 seconds before checking again if not all servers are maxed
   }
 }
