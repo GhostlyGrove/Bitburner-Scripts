@@ -20,13 +20,19 @@ export async function main(ns) {
   }
 
   // Ensure servers are correctly named
+  const purchasedServers = ns.getPurchasedServers();
+  const correctNames = new Set(purchasedServers.map(s => s.split('-')[1])); // Get current suffixes
+
   for (let i = 0; i < maxServers; i++) {
-    let serverName = `${serverPrefix}${i}`;
-    let actualServer = ns.getPurchasedServers().find(s => !s.includes(serverName));
-    if (actualServer) {
-      ns.renamePurchasedServer(actualServer, serverName);
-      ns.print(`Renamed ${actualServer} to ${serverName}`);
-      ns.tprint(`Renamed ${actualServer} to ${serverName}`);
+    let expectedName = `${serverPrefix}${i}`;
+    if (!correctNames.has(i.toString())) {
+      // Find server that does not have the correct name
+      let actualServer = purchasedServers.find(s => !s.startsWith(serverPrefix) || s !== expectedName);
+      if (actualServer) {
+        ns.renamePurchasedServer(actualServer, expectedName);
+        ns.print(`Renamed ${actualServer} to ${expectedName}`);
+        ns.tprint(`Renamed ${actualServer} to ${expectedName}`);
+      }
     }
   }
 
@@ -42,10 +48,10 @@ export async function main(ns) {
       let serverIndex = (startIndex + i) % maxServers;
       let serverName = `${serverPrefix}${serverIndex}`;
       let ram = ns.getServerMaxRam(serverName);
+      let nextRam = ram * 2;
 
       if (ram < maxRam) {
         allMaxed = false;
-        let nextRam = ram * 2;
         if (ns.getServerMoneyAvailable("home") >= serverCost(nextRam)) {
           ns.upgradePurchasedServer(serverName, nextRam);
           ns.print(`Upgraded ${serverName} to ${nextRam} GB`);
