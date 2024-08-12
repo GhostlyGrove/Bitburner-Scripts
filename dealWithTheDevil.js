@@ -59,11 +59,12 @@ export async function main(ns) {
 
   // Download the new version of dealWithTheDevil.js to get the updated script list
   ns.tprint("Downloading new version of dealWithTheDevil.js...");
-  if (await ns.wget(repoUrl + "dealWithTheDevil.js", "dealWithTheDevil_NEW.js")) {
+  const tempFile = "dealWithTheDevil_NEW.js";
+  if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
     ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
     // Read the new script list from the downloaded script
-    const scriptContent = ns.read("dealWithTheDevil_NEW.js");
+    const scriptContent = ns.read(tempFile);
     const newScriptList = extractScriptNames(scriptContent);
 
     // Determine new scripts that need to be downloaded
@@ -78,7 +79,7 @@ export async function main(ns) {
 
         // Overwrite dealWithTheDevil.js with the new version
         ns.tprint("Updating dealWithTheDevil.js with the new version...");
-        if (await ns.write("dealWithTheDevil.js", scriptContent, "w")) {
+        if (ns.write("dealWithTheDevil.js", scriptContent, "w")) {
           ns.tprint("dealWithTheDevil.js updated successfully.");
         } else {
           ns.tprint("ERROR: Failed to update dealWithTheDevil.js.");
