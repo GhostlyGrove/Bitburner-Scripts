@@ -7,7 +7,7 @@ export async function main(ns) {
   // List of all scripts to download
   const allScripts = [
     "library.js",
-    "killAll.js",
+    "killAlljs",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
@@ -73,12 +73,7 @@ export async function main(ns) {
 
       // Overwrite dealWithTheDevil.js with the new version
       ns.tprint("Updating dealWithTheDevil.js with the new version...");
-      if (ns.write(tempFile, scriptContent, "w")) {
-        if (ns.mv(tempFile, "dealWithTheDevil.js")) {
-          ns.tprint("dealWithTheDevil.js updated successfully.");
-        } else {
-          ns.tprint("ERROR: Failed to move dealWithTheDevil_NEW.js to dealWithTheDevil.js.");
-        }
+      if (ns.write("dealWithTheDevil.js", scriptContent, "w")) {
       } else {
         ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js.");
       }
