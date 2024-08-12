@@ -7,7 +7,7 @@ export async function main(ns) {
   // List of all scripts to download
   const allScripts = [
     "library.js",
-    "getPservRam.js",
+    "printPservRam.js",
     "killAll.js",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
