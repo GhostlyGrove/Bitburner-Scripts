@@ -1,5 +1,5 @@
 /** @param {NS} ns **/
-export async function main(ns) {
+async function main(ns) {
   ns.disableLog("ALL");
 
   const repoUrl = "https://raw.githubusercontent.com/GhostlyGrove/Bitburner-Scripts/main/";
@@ -33,7 +33,6 @@ export async function main(ns) {
   // Define the list of scripts within the new dealWithTheDevil.js content
   const allScripts = [
     "library.js",
-    "killAll",
     "getPservRam.js",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
