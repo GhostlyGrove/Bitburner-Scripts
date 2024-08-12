@@ -33,6 +33,7 @@ async function main(ns) {
   // Define the list of scripts within the new dealWithTheDevil.js content
   const allScripts = [
     "library.js",
+    "killAll",
     "getPservRam.js",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
