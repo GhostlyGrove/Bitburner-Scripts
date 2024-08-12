@@ -1,3 +1,5 @@
+import { rootedServers } from "library.js";
+
 /** @param {NS} ns **/
 export async function main(ns) {
   const script = "earlyGameHack.js";
@@ -5,11 +7,11 @@ export async function main(ns) {
   const minRAM = 64; // Minimum RAM in GB
 
   ns.tprint("The Goblin is here to help. He will try to start making you some money.");
-  ns.tprint("In the meantime, buy 8 GB personal servers from Alpha-Enterprises in the city.");
+  ns.tprint("Buying 8 GB personal servers from Alpha-Enterprises in the city, and nuking as many servers as possible will help Goblin make more money.");
   ns.tprint("Goblin will summon the Imp once the Home server has 64 GB of ram or you have at least 8 personal servers with 8 GB of ram.");
 
   while (true) {
-    let myServers = ns.getPurchasedServers();
+    let myServers = ns.getPurchasedServers().concat(rootedServers(ns));
     myServers.push("home");
 
     // Get the maximum RAM on the home server
