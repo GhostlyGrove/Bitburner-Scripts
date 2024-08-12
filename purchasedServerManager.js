@@ -5,21 +5,17 @@ export async function main(ns) {
   const maxRam = 1048576; // 2^20
   const serverCost = (ram) => ns.getPurchasedServerCost(ram);
 
-  // Function to ensure servers are correctly named
+  // Function to ensure servers are correctly named in sequential order
   function ensureCorrectNames(ns) {
     const purchasedServers = ns.getPurchasedServers();
-    const correctNames = new Set(purchasedServers.map(s => s.split('-')[1])); // Get current suffixes
+    purchasedServers.sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1])); // Sort servers by suffix number
 
     for (let i = 0; i < maxServers; i++) {
       let expectedName = `${serverPrefix}${i}`;
-      if (!correctNames.has(i.toString())) {
-        // Find server that does not have the correct name
-        let actualServer = purchasedServers.find(s => !s.startsWith(serverPrefix) || s !== expectedName);
-        if (actualServer) {
-          ns.renamePurchasedServer(actualServer, expectedName);
-          ns.print(`Renamed ${actualServer} to ${expectedName}`);
-          ns.tprint(`Renamed ${actualServer} to ${expectedName}`);
-        }
+      if (i < purchasedServers.length && purchasedServers[i] !== expectedName) {
+        ns.renamePurchasedServer(purchasedServers[i], expectedName);
+        ns.print(`Renamed ${purchasedServers[i]} to ${expectedName}`);
+        ns.tprint(`Renamed ${purchasedServers[i]} to ${expectedName}`);
       }
     }
   }
@@ -48,7 +44,6 @@ export async function main(ns) {
   if (ns.getPurchasedServers().length > 0) {
     ensureCorrectNames(ns);
   }
-
 
   // Upgrade servers evenly
   while (true) {
