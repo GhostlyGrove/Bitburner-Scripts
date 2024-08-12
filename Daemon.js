@@ -224,9 +224,9 @@ function distributeThreads(ns, servers, script, totalThreadsNeeded, targetServer
 
     let maxThreads = Math.floor((ns.getServerMaxRam(server) - ns.getServerUsedRam(server)) / ns.getScriptRam(script));
 
-    if (server === "home" && ns.getServerMaxRam(server) - ns.getServerUsedRam(server) > 32) {
-      // Reserve 32GB of RAM on home server for other tasks
-      maxThreads = Math.floor((ns.getServerMaxRam(server) - 32 - ns.getServerUsedRam(server)) / ns.getScriptRam(script));
+    if (server === "home" && ns.getServerMaxRam(server) - ns.getServerUsedRam(server) > 64) {
+      // Reserve 64GB of RAM on home server for other tasks
+      maxThreads = Math.floor((ns.getServerMaxRam(server) - 64 - ns.getServerUsedRam(server)) / ns.getScriptRam(script));
     }
 
     const threadsToUse = Math.min(totalThreadsNeeded, maxThreads);
