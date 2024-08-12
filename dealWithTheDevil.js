@@ -23,20 +23,20 @@ export async function main(ns) {
   ];
 
   async function downloadScripts(scripts) {
-    const maxRetries = 3;  // Maximum number of retry attempts for each download
-    let allDownloadsSuccessful = true;  // Flag to track if all downloads were successful
+    const maxRetries = 3;                                             // Maximum number of retry attempts for each download
+    let allDownloadsSuccessful = true;                                // Flag to track if all downloads were successful
 
     for (const script of scripts) {
-      let success = false;  // Flag to track if the current script was downloaded successfully
+      let success = false;                                            // Flag to track if the current script was downloaded successfully
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           ns.tprint(`Downloading ${script} (Attempt ${attempt}/${maxRetries})...`);
-          success = await ns.wget(repoUrl + script, script);  // Attempt to download the script
+          success = await ns.wget(repoUrl + script, script);           // Attempt to download the script
 
           if (success) {
             ns.tprint(`${script} downloaded successfully.`);
-            break;  // Exit the retry loop if the download was successful
+            break;                                                     // Exit the retry loop if the download was successful
           } else {
             ns.tprint(`ERROR: Failed to download ${script} on attempt ${attempt}.`);
           }
@@ -45,12 +45,12 @@ export async function main(ns) {
         }
 
         if (attempt < maxRetries) {
-          await ns.sleep(2000);  // Wait for 2 seconds before retrying
+          await ns.sleep(2000);                                          // Wait for 2 seconds before retrying
         }
       }
 
       if (!success) {
-        allDownloadsSuccessful = false;  // Set the flag to false if the download ultimately failed
+        allDownloadsSuccessful = false;                                 // Set the flag to false if the download ultimately failed
         ns.tprint(`ERROR: Failed to download ${script} after ${maxRetries} attempts.`);
       }
     }
@@ -70,7 +70,7 @@ export async function main(ns) {
       ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
       const scriptContent = ns.read(tempFile);
-      ns.tprint(`Content of ${tempFile}: ${scriptContent}`); // Debugging: Print content to check if it's correct
+      ns.tprint(`Content of ${tempFile}: ${scriptContent}`);                 // Debugging: Print content to check if it's correct
 
       // Overwrite dealWithTheDevil.js with the new version
       ns.tprint("Updating dealWithTheDevil.js with the new version...");
@@ -82,7 +82,7 @@ export async function main(ns) {
       // Run Daemon.js if available
       if (ns.fileExists("Daemon.js")) {
         ns.tprint("Running Daemon.js...");
-        ns.exec("Daemon.js", "home", 1);  // Run Daemon.js with 1 thread (adjust threads as necessary)
+        ns.exec("Daemon.js", "home", 1);                                      // Run Daemon.js with 1 thread (adjust threads as necessary)
       } else {
         ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
       }
