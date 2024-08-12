@@ -29,6 +29,13 @@ export async function main(ns) {
   // Determine the target servers to hack based on script arguments or using a custom function
   let targetServers = ns.args.length > 0 ? ns.args : findSimpleTargets(ns);
 
+  if (shouldRunGoblin(ns)) {
+    ns.print("RAM conditions not met. Starting Goblin.js.");
+    ns.tprint("You aren't ready for the Imp either. Here's a Goblin for your troubles.");
+    ns.exec("Goblin.js", "home"); // Start Goblin.js
+    ns.exit();
+  }
+
   // Inform the user about the Imp's duties
   ns.tprint("The imp is here to help. He will handle buying/upgrading personal servers, nuking everything he can, and making money.");
   ns.tprint("Once you have Formulas.exe he will summon the Daemon.");
@@ -115,7 +122,7 @@ export async function main(ns) {
 
       if (shouldRunGoblin(ns)) {
         ns.print("RAM conditions not met. Starting Goblin.js.");
-        ns.tprint("You aren't ready for the imp either. Here's a Goblin for your troubles.");
+        ns.tprint("You aren't ready for the Imp either. Here's a Goblin for your troubles.");
         ns.exec("Goblin.js", "home"); // Start Goblin.js
         ns.exit();
       }
