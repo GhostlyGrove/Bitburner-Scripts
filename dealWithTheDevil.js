@@ -18,16 +18,13 @@ async function main(ns) {
     try {
       ns.write("dealWithTheDevil.js", scriptContent, "w");
       ns.tprint("dealWithTheDevil.js updated successfully.");
-
-      // Evaluate the new script to extract the updated list of scripts
-      eval(scriptContent);
     } catch (error) {
       ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js. " + error);
-      return;
+      return; // Exit if update fails
     }
   } else {
     ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
-    return;
+    return; // Exit if download fails
   }
 
   // Define the list of scripts within the new dealWithTheDevil.js content
