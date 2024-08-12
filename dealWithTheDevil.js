@@ -60,15 +60,21 @@ export async function main(ns) {
   // Download the new version of dealWithTheDevil.js to get the updated script list
   ns.tprint("Downloading new version of dealWithTheDevil.js...");
   const tempFile = "dealWithTheDevil_NEW.js";
-  if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
+  const newFileUrl = repoUrl + "dealWithTheDevil.js";
+  
+  if (await ns.wget(newFileUrl, tempFile)) {
     ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
     // Read the new script list from the downloaded script
     const scriptContent = ns.read(tempFile);
+    ns.tprint(`Content of ${tempFile}: ${scriptContent}`); // Debugging: Print content to check if it's correct
+
     const newScriptList = extractScriptNames(scriptContent);
+    ns.tprint(`Extracted script names: ${newScriptList.join(", ")}`);
 
     // Determine new scripts that need to be downloaded
     const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
+    ns.tprint(`New scripts to be downloaded: ${newScripts.join(", ")}`);
 
     // Download the new scripts
     if (await downloadScripts(newScripts)) {
@@ -91,7 +97,7 @@ export async function main(ns) {
       ns.tprint("ERROR: Not all new scripts were downloaded successfully. Cannot execute Daemon.js.");
     }
   } else {
-    ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
+    ns.tprint(`ERROR: Failed to download the new version of dealWithTheDevil.js from ${newFileUrl}.`);
   }
 }
 
