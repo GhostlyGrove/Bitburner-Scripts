@@ -29,10 +29,15 @@ export async function main(ns) {
   // Determine the target servers to hack based on script arguments or using a custom function
   let targetServers = ns.args.length > 0 ? ns.args : findSimpleTargets(ns);
 
+  // if ram is low run goblin instead
   if (shouldRunGoblin(ns)) {
     ns.print("RAM conditions not met. Starting Goblin.js.");
     ns.tprint("You aren't ready for the Imp either. Here's a Goblin for your troubles.");
     ns.exec("Goblin.js", "home"); // Start Goblin.js
+    if (!ns.isRunning("Goblin.js")) {
+      ns.tprint("Home ram very low. Copy/paste the line below to run Goblin manually.");
+      ns.tprint("run Goblin.js");
+    }
     ns.exit();
   }
 
@@ -120,10 +125,15 @@ export async function main(ns) {
         ns.print(`All servers are rooted. ${diggerScript} is not needed.`);
       }
 
+      // if ram is low run goblin instead
       if (shouldRunGoblin(ns)) {
         ns.print("RAM conditions not met. Starting Goblin.js.");
         ns.tprint("You aren't ready for the Imp either. Here's a Goblin for your troubles.");
         ns.exec("Goblin.js", "home"); // Start Goblin.js
+        if (!ns.isRunning("Goblin.js")) {
+          ns.tprint("Home ram very low. Copy/paste the line below to run Goblin manually.");
+          ns.tprint("run Goblin.js");
+        }
         ns.exit();
       }
 
