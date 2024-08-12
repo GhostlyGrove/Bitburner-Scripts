@@ -5,45 +5,58 @@ export async function main(ns) {
   const maxRam = 1048576; // 2^20
   const serverCost = (ram) => ns.getPurchasedServerCost(ram);
 
-  // Purchase servers if they don't exist
-  for (let i = 0; i < maxServers; i++) {
-    let serverName = `${serverPrefix}${i}`;
-    if (!ns.serverExists(serverName)) {
-      if (ns.getServerMoneyAvailable("home") >= serverCost(8)) {
-        ns.purchaseServer(serverName, 8);
-        ns.tprint("Purchased server: " + serverName);
-      } else {
-        ns.print(`Not enough money to buy ${serverName}`);
-        await ns.sleep(30000); // Wait 30 seconds before trying again
+  // Function to ensure servers are correctly named
+  function ensureCorrectNames(ns) {
+    const purchasedServers = ns.getPurchasedServers();
+    const correctNames = new Set(purchasedServers.map(s => s.split('-')[1])); // Get current suffixes
+
+    for (let i = 0; i < maxServers; i++) {
+      let expectedName = `${serverPrefix}${i}`;
+      if (!correctNames.has(i.toString())) {
+        // Find server that does not have the correct name
+        let actualServer = purchasedServers.find(s => !s.startsWith(serverPrefix) || s !== expectedName);
+        if (actualServer) {
+          ns.renamePurchasedServer(actualServer, expectedName);
+          ns.print(`Renamed ${actualServer} to ${expectedName}`);
+          ns.tprint(`Renamed ${actualServer} to ${expectedName}`);
+        }
       }
     }
   }
 
-  // Ensure servers are correctly named
-  const purchasedServers = ns.getPurchasedServers();
-  const correctNames = new Set(purchasedServers.map(s => s.split('-')[1])); // Get current suffixes
-
-  for (let i = 0; i < maxServers; i++) {
-    let expectedName = `${serverPrefix}${i}`;
-    if (!correctNames.has(i.toString())) {
-      // Find server that does not have the correct name
-      let actualServer = purchasedServers.find(s => !s.startsWith(serverPrefix) || s !== expectedName);
-      if (actualServer) {
-        ns.renamePurchasedServer(actualServer, expectedName);
-        ns.print(`Renamed ${actualServer} to ${expectedName}`);
-        ns.tprint(`Renamed ${actualServer} to ${expectedName}`);
+  // Function to purchase servers if they don't exist
+  async function purchaseServers(ns) {
+    for (let i = 0; i < maxServers; i++) {
+      let serverName = `${serverPrefix}${i}`;
+      if (!ns.serverExists(serverName)) {
+        if (ns.getServerMoneyAvailable("home") >= serverCost(8)) {
+          ns.purchaseServer(serverName, 8);
+          ns.tprint("Purchased server: " + serverName);
+        } else {
+          ns.print(`Not enough money to buy ${serverName}`);
+          await ns.sleep(30000); // Wait 30 seconds before trying again
+        }
       }
     }
+
+    ensureCorrectNames(ns); // Ensure servers are correctly named after purchasing
   }
 
+  // Main code
   let lastUpgradedIndex = -1; // Initialize to -1 to start with the first server
+
+  ensureCorrectNames(ns);
+
 
   // Upgrade servers evenly
   while (true) {
-    let allMaxed = true;
+    if (ns.getPurchasedServers().length < maxServers) {
+      await purchaseServers(ns); // Purchase more servers if you're not at the max
+    }
 
-    // Determine the next server to upgrade
+    let allMaxed = true;
     let startIndex = (lastUpgradedIndex + 1) % maxServers;
+
     for (let i = 0; i < maxServers; i++) {
       let serverIndex = (startIndex + i) % maxServers;
       let serverName = `${serverPrefix}${serverIndex}`;
