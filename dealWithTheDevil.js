@@ -4,8 +4,8 @@ export async function main(ns) {
 
   const repoUrl = "https://raw.githubusercontent.com/GhostlyGrove/Bitburner-Scripts/main/";
 
-  // List of all initial scripts to download
-  const initialScripts = [
+  // List of all scripts to download
+  const allScripts = [
     "library.js",
     "killAll",
     "trace.js",                   // prints path to target server
@@ -57,65 +57,43 @@ export async function main(ns) {
     return allDownloadsSuccessful;
   }
 
-  // Download the new version of dealWithTheDevil.js to get the updated script list
-  ns.tprint("Downloading new version of dealWithTheDevil.js...");
-  const tempFile = "dealWithTheDevil_NEW.js";
-  if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
-    ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
+  // Download all scripts listed in allScripts
+  ns.tprint("Downloading scripts...");
+  if (await downloadScripts(allScripts)) {
+    ns.tprint("All scripts downloaded successfully.");
 
-    // Read the new script list from the downloaded script
-    const scriptContent = ns.read(tempFile);
-    ns.tprint(`Content of ${tempFile}: ${scriptContent}`); // Debugging: Print content to check if it's correct
+    // Read the new content of dealWithTheDevil.js to be updated
+    const tempFile = "dealWithTheDevil_NEW.js";
+    ns.tprint("Downloading new version of dealWithTheDevil.js...");
+    if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
+      ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
-    const newScriptList = extractScriptNames(scriptContent);
-    ns.tprint(`Extracted script names: ${newScriptList.join(", ")}`);
+      const scriptContent = ns.read(tempFile);
+      ns.tprint(`Content of ${tempFile}: ${scriptContent}`); // Debugging: Print content to check if it's correct
 
-    // Determine new scripts that need to be downloaded
-    const newScripts = newScriptList.filter(script => !initialScripts.includes(script));
-    ns.tprint(`New scripts to be downloaded: ${newScripts.join(", ")}`);
+      // Overwrite dealWithTheDevil.js with the new version
+      ns.tprint("Updating dealWithTheDevil.js with the new version...");
+      if (ns.write(tempFile, scriptContent, "w")) {
+        if (ns.mv(tempFile, "dealWithTheDevil.js")) {
+          ns.tprint("dealWithTheDevil.js updated successfully.");
+        } else {
+          ns.tprint("ERROR: Failed to move dealWithTheDevil_NEW.js to dealWithTheDevil.js.");
+        }
+      } else {
+        ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js.");
+      }
 
-    // Download the new scripts
-    if (await downloadScripts(newScripts)) {
-      // Only run Daemon.js if all scripts were downloaded successfully
+      // Run Daemon.js if available
       if (ns.fileExists("Daemon.js")) {
         ns.tprint("Running Daemon.js...");
         ns.exec("Daemon.js", "home", 1);  // Run Daemon.js with 1 thread (adjust threads as necessary)
-
-        // Overwrite dealWithTheDevil.js with the new version
-        ns.tprint("Updating dealWithTheDevil.js with the new version...");
-        if (ns.write(tempFile, scriptContent, "w")) {
-          if (ns.mv(tempFile, "dealWithTheDevil.js")) {
-            ns.tprint("dealWithTheDevil.js updated successfully.");
-          } else {
-            ns.tprint("ERROR: Failed to move dealWithTheDevil_NEW.js to dealWithTheDevil.js.");
-          }
-        } else {
-          ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js.");
-        }
       } else {
         ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
       }
     } else {
-      ns.tprint("ERROR: Not all new scripts were downloaded successfully. Cannot execute Daemon.js.");
+      ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
     }
   } else {
-    ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
+    ns.tprint("ERROR: Not all scripts were downloaded successfully.");
   }
-}
-
-// Function to extract script names from the new version of dealWithTheDevil.js
-function extractScriptNames(scriptContent) {
-  const scriptLines = scriptContent.split("\n");
-  const scriptNames = [];
-
-  for (const line of scriptLines) {
-    const trimmedLine = line.trim();
-    // Match only lines that start with a quote and end with a comma, containing .js
-    if (trimmedLine.startsWith('"') && trimmedLine.endsWith('",') && trimmedLine.includes(".js")) {
-      const scriptName = trimmedLine.slice(1, -2);  // Remove surrounding quotes and comma
-      scriptNames.push(scriptName);
-    }
-  }
-
-  return scriptNames;
 }
