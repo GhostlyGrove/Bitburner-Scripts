@@ -5,7 +5,8 @@ export async function main(ns) {
   const minRAM = 64; // Minimum RAM in GB
 
   ns.tprint("The Goblin is here to help. He will try to start making you some money.");
-  ns.tprint("Buy 8GB personal server.");
+  ns.tprint("Buy 8GB personal servers from Alpha-Enterprises in the city.");
+  ns.tprint("Goblin will summon the Imp once the Home server has 64 gb of ram or you have at least 8 personal servers with 8 gb of ram.");
 
   while (true) {
     let myServers = ns.getPurchasedServers();
