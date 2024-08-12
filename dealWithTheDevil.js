@@ -15,7 +15,7 @@ export async function main(ns) {
   // List of all initial scripts to download
   const initialScripts = [
     "library.js",
-    "killAll",
+    "killAll.js",
     "trace.js",
     "hack.js",
     "grow.js",
@@ -60,10 +60,11 @@ export async function main(ns) {
     return allDownloadsSuccessful;
   }
 
-  // Download the new version of dealWithTheDevil.js to get the updated script list
-  if (await ns.wget(repoUrl + "dealWithTheDevil.js", "dealWithTheDevil_NEW.js")) {
+  // Download the new version of dealWithTheDevil.js to a temporary file
+  const tempFile = "dealWithTheDevil_NEW.js";
+  if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
     // Read the new script list from the downloaded script
-    const scriptContent = ns.read("dealWithTheDevil_NEW.js");
+    const scriptContent = ns.read(tempFile);
     const newScriptList = extractScriptNames(scriptContent);
 
     // Determine new scripts that need to be downloaded
@@ -71,6 +72,12 @@ export async function main(ns) {
 
     // Download the new scripts
     if (await downloadScripts(newScripts)) {
+      // Replace the old dealWithTheDevil.js with the new version
+      if (ns.fileExists(tempFile)) {
+        ns.rm("dealWithTheDevil.js");  // Remove the old script
+        ns.mv(tempFile, "dealWithTheDevil.js");  // Rename the new script to the old script's name
+      }
+
       // Only run Daemon.js if all scripts were downloaded successfully
       if (ns.fileExists("Daemon.js")) {
         ns.exec("Daemon.js", "home", 1);  // Run Daemon.js with 1 thread (adjust threads as necessary)
