@@ -8,7 +8,7 @@ export async function main(ns) {
   const allScripts = [
     "library.js",
     "getPservRam.js",
-    "killAlljs",
+    "killAll.js",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
@@ -26,31 +26,36 @@ export async function main(ns) {
     const maxRetries = 3;                                             // Maximum number of retry attempts for each download
     let allDownloadsSuccessful = true;                                // Flag to track if all downloads were successful
 
-    for (const script of scripts) {
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
       let success = false;                                            // Flag to track if the current script was downloaded successfully
+
+      ns.tprint(`[${i + 1}/${scripts.length}] Downloading ${script}...`);
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          ns.tprint(`Downloading ${script} (Attempt ${attempt}/${maxRetries})...`);
-          success = await ns.wget(repoUrl + script, script);           // Attempt to download the script
+          ns.tprint(`Attempt ${attempt}/${maxRetries} for ${script}...`);
+          success = await ns.wget(repoUrl + script, script);          // Attempt to download the script
 
           if (success) {
             ns.tprint(`${script} downloaded successfully.`);
-            break;                                                     // Exit the retry loop if the download was successful
+            await ns.sleep(500);
+            break;                                                    // Exit the retry loop if the download was successful
           } else {
             ns.tprint(`ERROR: Failed to download ${script} on attempt ${attempt}.`);
+            await ns.sleep(500);
           }
         } catch (error) {
           ns.tprint(`ERROR: Failed to download ${script}. Error: ${error}`);
         }
 
         if (attempt < maxRetries) {
-          await ns.sleep(2000);                                          // Wait for 2 seconds before retrying
+          await ns.sleep(2000);                                       // Wait for 2 seconds before retrying
         }
       }
 
       if (!success) {
-        allDownloadsSuccessful = false;                                 // Set the flag to false if the download ultimately failed
+        allDownloadsSuccessful = false;                               // Set the flag to false if the download ultimately failed
         ns.tprint(`ERROR: Failed to download ${script} after ${maxRetries} attempts.`);
       }
     }
@@ -70,19 +75,21 @@ export async function main(ns) {
       ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
       const scriptContent = ns.read(tempFile);
-      ns.tprint(`Content of ${tempFile}: ${scriptContent}`);                 // Debugging: Print content to check if it's correct
 
       // Overwrite dealWithTheDevil.js with the new version
       ns.tprint("Updating dealWithTheDevil.js with the new version...");
-      if (ns.write("dealWithTheDevil.js", scriptContent, "w")) {
-      } else {
-        ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js.");
+      try {
+        ns.write("dealWithTheDevil.js", scriptContent, "w");
+        ns.tprint("dealWithTheDevil.js updated successfully.");
+      } catch (error) {
+        ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js. " + error);
       }
+
 
       // Run Daemon.js if available
       if (ns.fileExists("Daemon.js")) {
         ns.tprint("Running Daemon.js...");
-        ns.exec("Daemon.js", "home", 1);                                      // Run Daemon.js with 1 thread (adjust threads as necessary)
+        ns.exec("Daemon.js", "home", 1);                              // Run Daemon.js with 1 thread (adjust threads as necessary)
       } else {
         ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
       }
