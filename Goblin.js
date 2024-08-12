@@ -2,19 +2,42 @@
 export async function main(ns) {
   const script = "earlyGameHack.js";
   const target = "joesguns";
-  let myServers = ns.readPort(2);
+  const minRAM = 64; // Minimum RAM in GB
 
   ns.tprint("The Goblin is here to help. He will try to start making you some money.");
+  ns.tprint("Buy 8GB personal server.");
 
   while (true) {
-    const portCheck = ns.readPort(2);
-
-    if (portCheck != "NULL PORT DATA") {
-      myServers = portCheck;  // Get list of purchased servers and add home server to the list
-    }
+    let myServers = ns.getPurchasedServers();
+    myServers.push("home");
 
     // Get the maximum RAM on the home server
     const homeMaxRAM = ns.getServerMaxRam("home");
+    const combinedPurchasedServerRAM = myServers
+      .filter(server => server !== "home")
+      .reduce((total, server) => total + ns.getServerMaxRam(server), 0);
+
+    // Check if either condition is met
+    if (homeMaxRAM >= minRAM || combinedPurchasedServerRAM >= minRAM) {
+      ns.tprint("Conditions met. Transitioning to Imp.js.");
+
+      // Kill all instances of earlyGameHack.js
+      for (const server of myServers) {
+        const runningProcesses = ns.ps(server);
+        for (const proc of runningProcesses) {
+          if (proc.filename === script) {
+            ns.print(`Killing ${script} on ${server}`);
+            ns.kill(proc.pid, server);
+          }
+        }
+      }
+
+      // Start Imp.js
+      ns.exec("Imp.js", "home");
+
+      // Exit the script
+      return;
+    }
 
     // Iterate over each server to deploy the earlyGameHack.js script
     for (const server of myServers) {
