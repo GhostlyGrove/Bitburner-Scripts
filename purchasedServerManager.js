@@ -47,6 +47,13 @@ export async function main(ns) {
     for (let i = 0; i < maxServers; i++) {
       let serverIndex = (startIndex + i) % maxServers;
       let serverName = `${serverPrefix}${serverIndex}`;
+
+      // Check if the server exists before proceeding
+      if (!ns.serverExists(serverName)) {
+        ns.print(`Server ${serverName} does not exist. Skipping...`);
+        continue;
+      }
+
       let ram = ns.getServerMaxRam(serverName);
       let nextRam = ram * 2;
 
