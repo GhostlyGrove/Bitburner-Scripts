@@ -4,34 +4,11 @@ export async function main(ns) {
 
   const repoUrl = "https://raw.githubusercontent.com/GhostlyGrove/Bitburner-Scripts/main/";
 
-  // Download the new version of dealWithTheDevil.js first
-  const tempFile = "dealWithTheDevil_NEW.js";
-  ns.tprint("Downloading new version of dealWithTheDevil.js...");
-  if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
-    ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
-
-    // Read the new script content
-    const scriptContent = ns.read(tempFile);
-
-    // Overwrite dealWithTheDevil.js with the new version
-    ns.tprint("Updating dealWithTheDevil.js with the new version...");
-    try {
-      ns.write("dealWithTheDevil.js", scriptContent, "w");
-      ns.tprint("dealWithTheDevil.js updated successfully.");
-    } catch (error) {
-      ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js. " + error);
-      return; // Exit if update fails
-    }
-  } else {
-    ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
-    return; // Exit if download fails
-  }
-
-  // Define the list of scripts within the new dealWithTheDevil.js content
+  // List of all scripts to download
   const allScripts = [
     "library.js",
-    "killAll",
     "getPservRam.js",
+    "killAlljs",
     "trace.js",                   // prints path to target server
     "hack.js",                    // Core hacking script
     "grow.js",                    // Script to grow money on servers
@@ -59,11 +36,9 @@ export async function main(ns) {
 
           if (success) {
             ns.tprint(`${script} downloaded successfully.`);
-            await ns.sleep(500);
             break;                                                     // Exit the retry loop if the download was successful
           } else {
             ns.tprint(`ERROR: Failed to download ${script} on attempt ${attempt}.`);
-            await ns.sleep(500);
           }
         } catch (error) {
           ns.tprint(`ERROR: Failed to download ${script}. Error: ${error}`);
@@ -83,30 +58,37 @@ export async function main(ns) {
     return allDownloadsSuccessful;
   }
 
-  // Download all scripts listed in allScripts from the updated version
+  // Download all scripts listed in allScripts
   ns.tprint("Downloading scripts...");
   if (await downloadScripts(allScripts)) {
     ns.tprint("All scripts downloaded successfully.");
 
-    // Run Daemon.js if available
-    if (ns.fileExists("Daemon.js")) {
-      ns.tprint("Running Daemon.js...");
-      ns.exec("Daemon.js", "home", 1);                                      // Run Daemon.js with 1 thread (adjust threads as necessary)
+    // Read the new content of dealWithTheDevil.js to be updated
+    const tempFile = "dealWithTheDevil_NEW.js";
+    ns.tprint("Downloading new version of dealWithTheDevil.js...");
+    if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
+      ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
+
+      const scriptContent = ns.read(tempFile);
+      ns.tprint(`Content of ${tempFile}: ${scriptContent}`);                 // Debugging: Print content to check if it's correct
+
+      // Overwrite dealWithTheDevil.js with the new version
+      ns.tprint("Updating dealWithTheDevil.js with the new version...");
+      if (ns.write("dealWithTheDevil.js", scriptContent, "w")) {
+      } else {
+        ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js.");
+      }
+
+      // Run Daemon.js if available
+      if (ns.fileExists("Daemon.js")) {
+        ns.tprint("Running Daemon.js...");
+        ns.exec("Daemon.js", "home", 1);                                      // Run Daemon.js with 1 thread (adjust threads as necessary)
+      } else {
+        ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
+      }
     } else {
-      ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
+      ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
     }
-
-    // Suggest setting an alias for dealWithTheDevil.js
-    ns.tprint("");
-    ns.tprint("=============================================================");
-    ns.tprint("Consider setting an alias for 'dealWithTheDevil.js'");
-    ns.tprint("This will allow for easier autocomplete in the terminal");
-    ns.tprint("Copy and paste the following line into the terminal:");
-    ns.tprint("alias Take_the_Deal=\"run dealWithTheDevil.js\"");
-    ns.tprint("Then, you can run the script with the command: Take_the_Deal");
-    ns.tprint("=============================================================");
-    ns.tprint("");
-
   } else {
     ns.tprint("ERROR: Not all scripts were downloaded successfully.");
   }
