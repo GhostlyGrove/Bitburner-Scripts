@@ -45,7 +45,9 @@ export async function main(ns) {
   // Main code
   let lastUpgradedIndex = -1; // Initialize to -1 to start with the first server
 
-  ensureCorrectNames(ns);
+  if (ns.getPurchasedServers().length > 0) {
+    ensureCorrectNames(ns);
+  }
 
 
   // Upgrade servers evenly
