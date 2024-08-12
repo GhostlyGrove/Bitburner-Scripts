@@ -60,9 +60,7 @@ export async function main(ns) {
   // Download the new version of dealWithTheDevil.js to get the updated script list
   ns.tprint("Downloading new version of dealWithTheDevil.js...");
   const tempFile = "dealWithTheDevil_NEW.js";
-  const newFileUrl = repoUrl + "dealWithTheDevil.js";
-  
-  if (await ns.wget(newFileUrl, tempFile)) {
+  if (await ns.wget(repoUrl + "dealWithTheDevil.js", tempFile)) {
     ns.tprint("New version of dealWithTheDevil.js downloaded successfully.");
 
     // Read the new script list from the downloaded script
@@ -85,10 +83,14 @@ export async function main(ns) {
 
         // Overwrite dealWithTheDevil.js with the new version
         ns.tprint("Updating dealWithTheDevil.js with the new version...");
-        if (ns.write("dealWithTheDevil.js", scriptContent, "w")) {
-          ns.tprint("dealWithTheDevil.js updated successfully.");
+        if (ns.write(tempFile, scriptContent, "w")) {
+          if (ns.mv(tempFile, "dealWithTheDevil.js")) {
+            ns.tprint("dealWithTheDevil.js updated successfully.");
+          } else {
+            ns.tprint("ERROR: Failed to move dealWithTheDevil_NEW.js to dealWithTheDevil.js.");
+          }
         } else {
-          ns.tprint("ERROR: Failed to update dealWithTheDevil.js.");
+          ns.tprint("ERROR: Failed to write content to dealWithTheDevil.js.");
         }
       } else {
         ns.tprint("ERROR: Daemon.js not found. Cannot execute.");
@@ -97,7 +99,7 @@ export async function main(ns) {
       ns.tprint("ERROR: Not all new scripts were downloaded successfully. Cannot execute Daemon.js.");
     }
   } else {
-    ns.tprint(`ERROR: Failed to download the new version of dealWithTheDevil.js from ${newFileUrl}.`);
+    ns.tprint("ERROR: Failed to download the new version of dealWithTheDevil.js.");
   }
 }
 
